@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Phase 5: SEO & Metadata -->
+    <title>TEKGUYZ — AI-Powered Software for SMB Growth</title>
+    <meta name="description" content="Custom AI software for SMB teams. Reduce costs, increase revenue, see measurable ROI.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://tekguyz.com">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tekguyz.com">
+    <meta property="og:title" content="TEKGUYZ — AI-Powered Software for SMB Growth">
+    <meta property="og:description" content="Custom AI software for SMB teams. Reduce costs, increase revenue, see measurable ROI.">
+    <meta property="og:image" content="https://tekguyz.com/og-image.jpg">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://tekguyz.com">
+    <meta property="twitter:title" content="TEKGUYZ — AI-Powered Software for SMB Growth">
+    <meta property="twitter:description" content="Custom AI software for SMB teams. Reduce costs, increase revenue, see measurable ROI.">
+    <meta property="twitter:image" content="https://tekguyz.com/og-image.jpg">
+
+    <!-- Phase 4: Preloading & Performance Hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: ['class', '[data-theme="dark"]'], // Update config to recognize data-theme='dark' as the alternative
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'rgb(var(--color-bg) / <alpha-value>)',
+                        surface: 'rgb(var(--color-surface) / <alpha-value>)',
+                        'surface-high': 'rgb(var(--color-surface-high) / <alpha-value>)',
+                        'text-primary': 'rgb(var(--color-text-primary) / <alpha-value>)',
+                        'text-secondary': 'rgb(var(--color-text-secondary) / <alpha-value>)',
+                        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-up': 'slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'zoom-in': 'zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'breathe': 'breathe 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 15s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        zoomIn: {
+                            '0%': { opacity: '0', transform: 'scale(0.95)' },
+                            '100%': { opacity: '1', transform: 'scale(1)' },
+                        },
+                        slideInRight: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(0)' },
+                        },
+                        breathe: {
+                            '0%, 100%': { boxShadow: '0 0 0 0 rgb(var(--color-accent) / 0)' },
+                            '50%': { boxShadow: '0 0 20px 2px rgb(var(--color-accent) / 0.5)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            /* DEFAULT: True Dark Theme (#000000) */
+            --color-bg: 0 0 0;
+            --color-surface: 18 18 18;
+            --color-surface-high: 32 32 32;
+            --color-text-primary: 255 255 255;
+            --color-text-secondary: 163 163 163;
+            /* Default Accent (Blue) - overridden by JS */
+            --color-accent: 59 130 246;   
+        }
+
+        [data-theme='dark'] {
+            /* ALTERNATIVE: Standard Dark Theme (#212121) */
+            --color-bg: 33 33 33;         /* #212121 */
+            --color-surface: 45 45 45;    /* Slightly lighter than bg */
+            --color-surface-high: 60 60 60; 
+            --color-text-primary: 250 250 250;
+            --color-text-secondary: 163 163 163;
+        }
+
+        body {
+            /* Optimize for speed: only animate colors, keep it tight */
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        
+        html {
+            /* Smooth scroll for basic anchor behavior, though JS handles offset */
+            scroll-behavior: smooth;
+        }
+
+        /* ACCESSIBILITY: Visible Focus Rings */
+        *:focus-visible {
+            outline: 2px solid rgb(var(--color-accent));
+            outline-offset: 2px;
+        }
+
+        /* PERFORMANCE: Pause animations when tab is hidden or element has .paused */
+        .paused, .paused * {
+            animation-play-state: paused !important;
+        }
+    </style>
+    <style type="text/tailwindcss">
+        @layer components {
+            .type-display {
+                @apply text-5xl md:text-7xl font-bold tracking-tight leading-[1.1];
+            }
+            .type-headline {
+                @apply text-3xl md:text-5xl font-bold tracking-tight leading-tight;
+            }
+            .type-title {
+                @apply text-xl md:text-2xl font-semibold leading-snug text-text-primary;
+            }
+            .type-body {
+                @apply text-base md:text-lg leading-relaxed text-text-secondary;
+            }
+            .type-small {
+                @apply text-sm font-medium text-text-secondary;
+            }
+            .section-padding {
+                /* Increased mobile padding for better breathing room */
+                @apply py-28 md:py-32;
+            }
+            .card-base {
+                @apply bg-surface border border-surface-high rounded-xl overflow-hidden transition-all duration-300;
+            }
+            
+            /* Phase 5: Micro-Interactions */
+            .btn-press {
+                @apply active:scale-[0.98] transition-transform duration-150 ease-out;
+            }
+            .nav-link-animated {
+                @apply relative text-sm font-medium text-text-secondary hover:text-accent transition-colors duration-300;
+            }
+            .nav-link-animated::after {
+                content: '';
+                @apply absolute bottom-[-4px] left-1/2 w-0 h-[2px] bg-accent transition-all duration-300 ease-out;
+                transform: translateX(-50%);
+            }
+            .nav-link-animated:hover::after {
+                @apply w-full;
+            }
+            .card-hover {
+                @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-accent/10 hover:border-accent/30;
+            }
+            .header-fade {
+                @apply animate-in fade-in slide-in-from-bottom-2 duration-700 ease-out;
+            }
+        }
+
+        @layer utilities {
+            .animate-in {
+                animation-duration: 0.3s;
+                animation-fill-mode: both;
+            }
+            .fade-in {
+                animation-name: fadeIn;
+            }
+            .slide-in-from-bottom-2 {
+                --tw-enter-translate-y: 0.5rem; /* ~8px for subtle lift */
+                animation-name: slideInFromBottom;
+            }
+            .slide-in-from-bottom-4 {
+                --tw-enter-translate-y: 1rem;
+                animation-name: slideInFromBottom;
+            }
+            .slide-in-from-bottom-5 {
+                --tw-enter-translate-y: 1.25rem;
+                animation-name: slideInFromBottom;
+            }
+            .slide-in-from-bottom-8 {
+                --tw-enter-translate-y: 2rem;
+                animation-name: slideInFromBottom;
+            }
+            .slide-in-from-top-5 {
+                --tw-enter-translate-y: -1.25rem;
+                animation-name: slideInFromTop;
+            }
+            .zoom-in {
+                animation-name: zoomIn;
+            }
+            .zoom-in-95 {
+                 --tw-enter-scale: 0.95;
+                 animation-name: zoomInScale;
+            }
+            .slide-in-from-right {
+                animation-name: slideInRight;
+            }
+            
+            @keyframes slideInFromBottom {
+                0% { opacity: 0; transform: translateY(var(--tw-enter-translate-y, 1rem)); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes slideInFromTop {
+                0% { opacity: 0; transform: translateY(var(--tw-enter-translate-y, -1.25rem)); }
+                100% { opacity: 1; transform: translateY(0); }
+            }
+             @keyframes zoomInScale {
+                0% { opacity: 0; transform: scale(var(--tw-enter-scale, 0.95)); }
+                100% { opacity: 1; transform: scale(1); }
+            }
+        }
+        
+        /* Accessibility: Reduce Motion */
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.6",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0"
+  }
+}
+</script>
+</head>
+<body class="bg-background text-text-primary antialiased selection:bg-accent/30 selection:text-text-primary">
+    <div id="root"></div>
+</body>
+</html>
