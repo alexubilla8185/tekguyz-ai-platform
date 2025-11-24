@@ -1,11 +1,10 @@
-import { ChatMessage } from "../types";
+import { GoogleGenAI, Type } from "@google/genai";
 
 /**
  * GEMINI SERVICE ABSTRACTION LAYER
  * 
- * Supports both:
- * 1. REAL AI (via Netlify Proxy) - Used if deployed and configured.
- * 2. MOCK AI (Client-side Simulation) - Used if local or proxy fails.
+ * Uses @google/genai SDK directly on the client.
+ * Includes graceful fallback to Mock Mode if API key is missing or calls fail.
  */
 
 // --- Types ---
@@ -24,14 +23,6 @@ export interface ChatResponse {
   projectData?: Record<string, any>;
 }
 
-export interface ProjectIntake {
-  companyInfo: { name?: string; industry?: string; size?: string; };
-  goals: { primary?: string; secondary?: string[]; };
-  scope: { features: string[]; platforms: string[]; };
-  timeline: { expectedStart?: string; deadline?: string; };
-  contact: { name?: string; email?: string; };
-}
-
 export interface Idea {
   title: string;
   pitch: string;
@@ -46,11 +37,10 @@ export interface AuditResult {
 
 // --- CONSTANTS: SAFE FALLBACK DATA ---
 
-const FALLBACK_CHAT_RESPONSE: ChatResponse = {
-  role: 'assistant',
-  message: "I'm currently operating in offline mode. I can't process complex queries right now, but you can explore our tools or start a project form manually to get in touch.",
-  suggestions: ["Start Project Form", "Explore AI Tools", "Browse Case Studies"],
-  projectData: {}
+const FALLBACK_AUDIT: AuditResult = {
+  assessment: "System Offline Mode: We couldn't analyze your specific text, but generally, manual data entry is the #1 bottleneck for growing SMBs.",
+  recommendedActions: ["Map your current workflow steps manually", "Identify where you use spreadsheets", "Contact us for a full personalized audit"],
+  impactEstimate: "Typical automation projects save 10-20 hours/week."
 };
 
 const FALLBACK_IDEAS: Idea[] = [
@@ -59,79 +49,164 @@ const FALLBACK_IDEAS: Idea[] = [
   { title: "Example: Scheduling AI", pitch: "(Offline Fallback) Smart calendar management.", tags: ["Example", "Scheduling"] }
 ];
 
-const FALLBACK_AUDIT: AuditResult = {
-  assessment: "System Offline Mode: We couldn't analyze your specific text, but generally, manual data entry is the #1 bottleneck for growing SMBs.",
-  recommendedActions: ["Map your current workflow steps manually", "Identify where you use spreadsheets", "Contact us for a full personalized audit"],
-  impactEstimate: "Typical automation projects save 10-20 hours/week."
-};
-
-const FALLBACK_INTAKE: ProjectIntake = {
-  companyInfo: { name: "", industry: "", size: "" },
-  goals: { primary: "", secondary: [] },
-  scope: { features: [], platforms: [] },
-  timeline: { expectedStart: "", deadline: "" },
-  contact: { name: "", email: "" }
-};
-
 // --- Helper for simulated latency (Mock Mode) ---
 const simulateNetworkDelay = (ms: number = 800) => new Promise(resolve => setTimeout(resolve, ms));
 
 export class GeminiService {
-  
-  /**
-   * PROXY HANDLER
-   * Attempts to call the serverless function. Throws error if fails/404.
-   */
-  private async callProxy(prompt: string, systemInstruction?: string): Promise<string> {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8s timeout
+  private ai: GoogleGenAI | null = null;
 
+  constructor() {
+    // Initialize the SDK with the key defined in vite.config.ts
+    // The define plugin in vite.config.ts ensures process.env.API_KEY is populated
     try {
-      const response = await fetch('/.netlify/functions/gemini', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, systemInstruction }),
-        signal: controller.signal
-      });
-      clearTimeout(timeoutId);
-
-      if (!response.ok) throw new Error(`Proxy Error: ${response.status}`);
-      
-      const data = await response.json();
-      return data.text;
+      if (process.env.API_KEY) {
+        this.ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      } else {
+        console.warn("Gemini API Key missing. Falling back to Mock Mode.");
+      }
     } catch (error) {
-      clearTimeout(timeoutId);
-      throw error; // Bubble up to trigger fallback
+      console.error("Failed to initialize Gemini SDK:", error);
     }
   }
 
   // --- PUBLIC METHODS ---
 
   public async sendChat(message: string, context: any[] = []): Promise<ServiceResponse<ChatResponse>> {
+    if (!this.ai) return this.mockChat(message);
+
     try {
-      // 1. Try Real AI
-      const prompt = `User said: "${message}". Respond as TEKGUYZ Assistant (helpful, professional, outcome-focused). JSON format: { "message": string, "suggestions": string[], "projectData": object }`;
-      const jsonStr = await this.callProxy(prompt, "You are a helpful software consultant AI. Always return valid JSON.");
-      
-      // Clean markdown if present
-      const cleanJson = jsonStr.replace(/```json|```/g, '').trim();
-      const parsedData = JSON.parse(cleanJson);
+      // Basic Text Task: 'gemini-2.5-flash'
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `User said: "${message}".`,
+        config: {
+          systemInstruction: "You are the TEKGUYZ Assistant, a helpful and professional software consultant AI. You help users scope projects, estimate costs, and draft content. Always return valid JSON with 'message' (string), 'suggestions' (string array), and 'projectData' (object).",
+          responseMimeType: "application/json",
+          // Schema is omitted here to allow 'projectData' to be flexible/loose, but we rely on the prompt to enforce JSON
+        }
+      });
+
+      const parsedData = JSON.parse(response.text || '{}');
 
       return {
         status: 'success',
         data: {
             role: 'assistant',
-            message: parsedData.message || parsedData.text,
+            message: parsedData.message || response.text || "I'm here to help.",
             suggestions: parsedData.suggestions || [],
             projectData: parsedData.projectData || {}
         }
       };
 
     } catch (error) {
-      console.warn("Using Mock Fallback for Chat:", error);
+      console.warn("Gemini API Error (Chat):", error);
+      return this.mockChat(message);
+    }
+  }
+
+  public async summarizeChat(history: any[]): Promise<ServiceResponse<string>> {
+    if (!this.ai) return { status: 'success', isFallback: true, data: "User inquired about automation. (Mock Summary)" };
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `Summarize this chat history into a concise project context note:\n${JSON.stringify(history)}`,
+      });
+      return { status: 'success', data: response.text || "" };
+    } catch (e) {
+      return { status: 'success', isFallback: true, data: "Summary unavailable (Network Error)" };
+    }
+  }
+
+  public async auditInput(input: string): Promise<ServiceResponse<AuditResult>> {
+    if (!this.ai) {
+        await simulateNetworkDelay(1200);
+        return { status: 'success', isFallback: true, data: FALLBACK_AUDIT };
+    }
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `Audit this business problem: "${input}". Provide an assessment, recommended actions, and impact estimate.`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              assessment: { type: Type.STRING },
+              recommendedActions: { type: Type.ARRAY, items: { type: Type.STRING } },
+              impactEstimate: { type: Type.STRING }
+            }
+          }
+        }
+      });
+      
+      const data = JSON.parse(response.text || '{}');
+      return { status: 'success', data };
+    } catch (e) {
+      console.warn("Gemini API Error (Audit):", e);
+      return { status: 'success', isFallback: true, data: FALLBACK_AUDIT };
+    }
+  }
+
+  public async generateIdeas(prompt: string): Promise<ServiceResponse<Idea[]>> {
+    if (!this.ai) {
+        await simulateNetworkDelay(1200);
+        return { status: 'success', isFallback: true, data: FALLBACK_IDEAS };
+    }
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `Generate 3 software project ideas for: "${prompt}".`,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                title: { type: Type.STRING },
+                pitch: { type: Type.STRING },
+                tags: { type: Type.ARRAY, items: { type: Type.STRING } }
+              }
+            }
+          }
+        }
+      });
+
+      let data = JSON.parse(response.text || '[]');
+      if (!Array.isArray(data) && (data as any).ideas) data = (data as any).ideas;
+      
+      return { status: 'success', data: Array.isArray(data) ? data : FALLBACK_IDEAS };
+    } catch (e) {
+      console.warn("Gemini API Error (Ideas):", e);
+      return { status: 'success', isFallback: true, data: FALLBACK_IDEAS };
+    }
+  }
+
+  public async refineText(text: string): Promise<ServiceResponse<string>> {
+    if (!this.ai) {
+        await simulateNetworkDelay(800);
+        return { status: 'success', isFallback: true, data: `Refined: ${text} [Mock Mode]` };
+    }
+
+    try {
+      const response = await this.ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `Rewrite this text to be professional, clear, and concise for a business proposal: "${text}"`,
+      });
+      return { status: 'success', data: response.text || text };
+    } catch (e) {
+      return { status: 'success', isFallback: true, data: text };
+    }
+  }
+
+  // --- MOCK FALLBACKS ---
+
+  private async mockChat(message: string): Promise<ServiceResponse<ChatResponse>> {
       await simulateNetworkDelay(800);
       
-      // Mock Logic
       const msgLower = message.toLowerCase();
       let responseData: ChatResponse = {
         role: 'assistant',
@@ -150,56 +225,6 @@ export class GeminiService {
       }
 
       return { status: 'success', isFallback: true, data: responseData };
-    }
-  }
-
-  public async summarizeChat(history: any[]): Promise<ServiceResponse<string>> {
-    try {
-      const prompt = `Summarize this chat history into a concise project context note:\n${JSON.stringify(history)}`;
-      const text = await this.callProxy(prompt);
-      return { status: 'success', data: text };
-    } catch (e) {
-      await simulateNetworkDelay(600);
-      return { status: 'success', isFallback: true, data: "User inquired about pricing for an automation bot. AI provided range $5k-$15k. (Mock Summary)" };
-    }
-  }
-
-  public async auditInput(input: string): Promise<ServiceResponse<AuditResult>> {
-    try {
-      const prompt = `Audit this business problem: "${input}". Return JSON: { "assessment": string, "recommendedActions": string[], "impactEstimate": string }`;
-      const jsonStr = await this.callProxy(prompt, "You are a business analyst AI. Return valid JSON.");
-      const cleanJson = jsonStr.replace(/```json|```/g, '').trim();
-      const data = JSON.parse(cleanJson);
-      return { status: 'success', data };
-    } catch (e) {
-      await simulateNetworkDelay(1200);
-      return { status: 'success', isFallback: true, data: FALLBACK_AUDIT };
-    }
-  }
-
-  public async generateIdeas(prompt: string): Promise<ServiceResponse<Idea[]>> {
-    try {
-      const fullPrompt = `Generate 3 software project ideas for: "${prompt}". Return JSON array of objects: { "title": string, "pitch": string, "tags": string[] }`;
-      const jsonStr = await this.callProxy(fullPrompt, "You are a creative product manager AI. Return valid JSON.");
-      const cleanJson = jsonStr.replace(/```json|```/g, '').trim();
-      let data = JSON.parse(cleanJson);
-      if(!Array.isArray(data)) data = data.ideas || []; // Handle potential nesting
-      return { status: 'success', data };
-    } catch (e) {
-      await simulateNetworkDelay(1200);
-      return { status: 'success', isFallback: true, data: FALLBACK_IDEAS };
-    }
-  }
-
-  public async refineText(text: string): Promise<ServiceResponse<string>> {
-    try {
-      const prompt = `Rewrite this text to be professional and clear: "${text}"`;
-      const result = await this.callProxy(prompt);
-      return { status: 'success', data: result };
-    } catch (e) {
-      await simulateNetworkDelay(800);
-      return { status: 'success', isFallback: true, data: `Refined: ${text} [Polished for clarity and impact - Mock Mode]` };
-    }
   }
 }
 
