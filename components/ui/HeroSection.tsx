@@ -55,7 +55,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ id }) => {
 
             {/* Headline */}
             <h1 className="type-display header-fade delay-100">
-              Custom software that actually works for{' '}
+              Custom applications that actually work for{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-blue-400">
                 your business
               </span>
