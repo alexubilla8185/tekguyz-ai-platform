@@ -32,7 +32,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: ['class', '[data-theme="dark"]'], // Update config to recognize data-theme='dark' as the alternative
+            darkMode: ['class', '[data-theme="dark"]'],
             theme: {
                 extend: {
                     colors: {
@@ -103,10 +103,10 @@
         }
 
         [data-theme='dark'] {
-            /* ALTERNATIVE: Deep Matte Dark Theme (Much Darker than before) */
-            --color-bg: 5 5 5;            /* Was 33 33 33 */
-            --color-surface: 15 15 15;    /* Was 45 45 45 */
-            --color-surface-high: 30 30 30; /* Was 60 60 60 */
+            /* ALTERNATIVE: Neutral Dark Theme (#171717) - Refined Palette */
+            --color-bg: 23 23 23;            
+            --color-surface: 38 38 38;    
+            --color-surface-high: 64 64 64; 
             --color-text-primary: 250 250 250;
             --color-text-secondary: 163 163 163;
         }

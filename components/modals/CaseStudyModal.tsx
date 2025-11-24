@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { X, TrendingUp, Sparkles, Building2, Repeat } from 'lucide-react';
+import { X, TrendingUp, Sparkles, Building2, Repeat, Info, ExternalLink } from 'lucide-react';
 import { useGlobal } from '../../context/GlobalContext';
 import { prefetchProjectForm } from '../../utils/prefetch';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
@@ -76,7 +76,7 @@ const CaseStudyModal: React.FC = () => {
     >
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300"
+        className="absolute inset-0 bg-black/70 backdrop-blur-md transition-opacity duration-300"
         onClick={() => setSelectedCaseStudy(null)}
         aria-hidden="true"
       />
@@ -84,110 +84,95 @@ const CaseStudyModal: React.FC = () => {
       {/* Modal Container */}
       <div 
         ref={containerRef}
-        className={`relative w-full h-[100dvh] sm:h-auto sm:max-w-6xl sm:max-h-[90vh] bg-surface border border-surface-high rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 transform ${isLoaded ? 'translate-y-0 sm:scale-100 opacity-100' : 'translate-y-full sm:scale-95 opacity-0'}`}
+        className={`relative w-full h-[100dvh] sm:h-auto sm:max-w-4xl sm:max-h-[85vh] bg-surface border border-surface-high rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 transform ${isLoaded ? 'translate-y-0 sm:scale-100 opacity-100' : 'translate-y-full sm:scale-95 opacity-0'}`}
       >
-        {/* Header - Compact & Adaptive */}
-        <div className="relative shrink-0 border-b border-surface-high bg-surface-high/10 overflow-hidden p-5 sm:p-6">
-            
-            {/* Ambient Background Effects */}
-            <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
-            <div className="absolute inset-0 opacity-[0.05]" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-
-            <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-4 pr-10">
-                <div className="space-y-2">
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-2">
-                        {selectedCaseStudy.tags.map(tag => (
-                            <span key={tag} className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-accent bg-accent/10 border border-accent/20 rounded backdrop-blur-md">
-                                {tag}
-                            </span>
-                        ))}
-                    </div>
-
-                    {/* Title */}
-                    <h2 id="casestudy-title" className="text-xl md:text-3xl font-bold text-text-primary leading-tight">
-                        {selectedCaseStudy.title}
-                    </h2>
-
-                    {/* Client Info */}
-                    <div className="flex items-center gap-2 text-text-secondary">
-                        <Building2 className="w-3 h-3 md:w-4 md:h-4" />
-                        <span className="text-xs md:text-sm font-medium">{selectedCaseStudy.client}</span>
-                    </div>
-                </div>
-
-                {/* Close Button */}
-                <button
-                    onClick={() => setSelectedCaseStudy(null)}
-                    className="absolute top-0 right-0 sm:static p-2 rounded-full text-text-secondary hover:bg-surface-high hover:text-text-primary transition-colors btn-press"
-                    aria-label="Close modal"
-                >
-                    <X className="w-6 h-6" />
-                </button>
+        {/* Header - Compact */}
+        <div className="relative shrink-0 border-b border-surface-high bg-surface/95 backdrop-blur-md px-5 py-4 flex items-center justify-between z-10">
+            <div className="flex flex-col gap-1">
+                 <div className="flex items-center gap-2 text-xs font-bold text-accent uppercase tracking-wider">
+                     <Building2 className="w-3 h-3" />
+                     {selectedCaseStudy.client}
+                 </div>
+                 <h2 id="casestudy-title" className="text-xl md:text-2xl font-bold text-text-primary tracking-tight line-clamp-1">
+                    {selectedCaseStudy.title}
+                 </h2>
             </div>
+
+            <button
+                onClick={() => setSelectedCaseStudy(null)}
+                className="p-2 -mr-2 text-text-secondary hover:text-text-primary hover:bg-surface-high rounded-full transition-colors btn-press"
+                aria-label="Close modal"
+            >
+                <X className="w-5 h-5" />
+            </button>
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-8">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 h-full">
+        <div className="flex-1 overflow-y-auto p-5 md:p-8 bg-surface">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 
-                {/* Left Column: Context (Wider) */}
-                <div className="lg:col-span-7 space-y-6">
+                {/* Left Column: Narrative (Wider) */}
+                <div className="md:col-span-2 space-y-6">
                     <div>
-                        <h3 className="text-lg font-bold text-text-primary mb-3 flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-accent" />
-                            The Challenge & Solution
+                        {/* Tags Inline */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                            {selectedCaseStudy.tags.map(tag => (
+                                <span key={tag} className="text-[10px] font-bold px-2 py-1 rounded bg-surface-high/30 border border-surface-high text-text-secondary uppercase tracking-wide">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+
+                        <h3 className="flex items-center gap-2 text-sm font-bold text-text-primary uppercase tracking-wider mb-3">
+                           <Sparkles className="w-4 h-4 text-accent" /> Challenge & Solution
                         </h3>
-                        <p className="text-text-secondary leading-relaxed whitespace-pre-line text-sm md:text-base">
+                        <div className="prose prose-invert prose-sm max-w-none text-text-secondary leading-relaxed whitespace-pre-line text-sm md:text-base">
                             {selectedCaseStudy.fullDescription}
-                        </p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Right Column: Metrics (Compact Grid) */}
-                <div className="lg:col-span-5">
-                    <h3 className="text-lg font-bold text-text-primary mb-3 flex items-center gap-2">
+                {/* Right Column: Metrics (Stacked) */}
+                <div className="md:col-span-1 flex flex-col gap-4">
+                    <div className="flex items-center gap-2 text-text-primary font-bold text-xs uppercase tracking-wider opacity-80">
                         <TrendingUp className="w-4 h-4 text-accent" />
-                        Key Outcomes
-                    </h3>
+                        Impact
+                    </div>
                     
-                    {/* Grid Layout: 1 col mobile, 2 cols desktop to prevent vertical height buildup */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 gap-3">
                         {selectedCaseStudy.metrics.map((metric, index) => (
                             <div 
                                 key={index} 
-                                className="group h-28 perspective-1000 cursor-pointer focus:outline-none"
+                                className="group h-20 perspective-1000 cursor-pointer focus:outline-none"
                                 onClick={() => toggleMetricFlip(index)}
                                 onKeyDown={(e) => handleMetricKeyDown(e, index)}
                                 tabIndex={0}
                                 role="button"
                                 aria-pressed={flippedMetrics.includes(index)}
-                                aria-label={`${metric.label}: ${metric.valueDisplay}. Tap to reveal details.`}
+                                aria-label={`${metric.label}: ${metric.valueDisplay}. Click to see details.`}
                             >
-                                <div className={`flip-card-inner rounded-xl border border-surface-high transition-transform duration-500 ${flippedMetrics.includes(index) ? 'is-flipped' : 'group-hover:rotate-y-180'}`}>
+                                <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${flippedMetrics.includes(index) ? 'rotate-y-180' : 'group-hover:rotate-y-180'}`}>
                                     
                                     {/* Front Face */}
-                                    <div className="flip-card-front bg-surface-high/10 flex flex-col justify-center px-5 card-hover relative overflow-hidden">
-                                        <div className="text-3xl font-bold text-accent mb-1 truncate">
-                                            {typeof metric.value === 'number' ? (
-                                                <CountUp end={metric.value} suffix={metric.valueDisplay.replace(/[0-9]/g, '')} />
-                                            ) : (
-                                                metric.valueDisplay
-                                            )}
+                                    <div className="absolute inset-0 backface-hidden bg-surface-high/20 border border-surface-high rounded-lg px-4 flex items-center justify-between hover:border-accent/30 transition-colors">
+                                        <div className="flex flex-col">
+                                            <span className="text-2xl font-bold text-text-primary group-hover:text-accent transition-colors">
+                                                {typeof metric.value === 'number' ? (
+                                                    <CountUp end={metric.value} suffix={metric.valueDisplay.replace(/[0-9]/g, '')} />
+                                                ) : (
+                                                    metric.valueDisplay
+                                                )}
+                                            </span>
+                                            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider">
+                                                {metric.label}
+                                            </span>
                                         </div>
-                                        <div className="text-[10px] font-bold text-text-secondary uppercase tracking-wider truncate">
-                                            {metric.label}
-                                        </div>
-
-                                        {/* Subtle Flip Indicator */}
-                                        <div className="absolute top-2 right-2 text-text-secondary/30 group-hover:text-accent/50 transition-colors">
-                                            <Repeat className="w-3 h-3" />
-                                        </div>
+                                        <Info className="w-4 h-4 text-surface-high group-hover:text-accent/50 transition-colors" />
                                     </div>
 
                                     {/* Back Face */}
-                                    <div className="flip-card-back bg-accent text-white flex items-center justify-center text-center p-3">
-                                        <p className="text-xs font-medium leading-snug">
+                                    <div className="absolute inset-0 backface-hidden rotate-y-180 bg-accent text-white rounded-lg px-4 flex items-center justify-center text-center">
+                                        <p className="text-xs font-medium leading-tight line-clamp-3">
                                             {metric.detail}
                                         </p>
                                     </div>
@@ -195,25 +180,32 @@ const CaseStudyModal: React.FC = () => {
                             </div>
                         ))}
                     </div>
+                    
+                    {/* Callout */}
+                    <div className="mt-4 p-4 rounded-lg bg-accent/5 border border-accent/10">
+                        <p className="text-xs text-text-secondary leading-relaxed">
+                            <strong className="text-accent">Result:</strong> Client saw immediate ROI within the first quarter of deployment.
+                        </p>
+                    </div>
                 </div>
 
             </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 sm:p-5 border-t border-surface-high bg-surface flex justify-between items-center shrink-0">
+        <div className="p-4 border-t border-surface-high bg-surface flex justify-between items-center shrink-0">
             <button 
                 onClick={() => setSelectedCaseStudy(null)}
-                className="text-text-secondary hover:text-text-primary transition-colors text-xs sm:text-sm font-medium px-2"
+                className="text-text-secondary hover:text-text-primary transition-colors text-xs font-bold uppercase tracking-wider px-2"
             >
                 Close
             </button>
             <button 
                 onClick={handleStartProject}
                 onMouseEnter={prefetchProjectForm}
-                className="px-5 py-2.5 bg-text-primary text-background font-bold rounded-xl hover:bg-accent hover:text-white transition-colors text-sm flex items-center gap-2 btn-press shadow-lg"
+                className="px-5 py-2.5 bg-text-primary text-background font-bold rounded-lg hover:bg-accent hover:text-white transition-colors text-sm flex items-center gap-2 btn-press shadow-sm"
             >
-                Start Similar Project 
+                Start Similar Project <ExternalLink className="w-3 h-3" />
             </button>
         </div>
 
@@ -222,33 +214,9 @@ const CaseStudyModal: React.FC = () => {
       {/* CSS for 3D Flip Animation */}
       <style>{`
         .perspective-1000 { perspective: 1000px; }
-        
-        .flip-card-inner {
-          position: relative;
-          width: 100%;
-          height: 100%;
-          transform-style: preserve-3d;
-        }
-
-        /* Flip state controlled by JS (Click) OR CSS (Hover) */
-        .flip-card-inner.is-flipped,
-        .group:hover .flip-card-inner {
-          transform: rotateY(180deg);
-        }
-
-        .flip-card-front, 
-        .flip-card-back {
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
-          border-radius: 0.75rem;
-        }
-
-        .flip-card-back {
-          transform: rotateY(180deg);
-        }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
       `}</style>
     </div>
   );
