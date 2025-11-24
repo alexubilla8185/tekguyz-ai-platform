@@ -307,7 +307,7 @@ const AIFeaturesModal: React.FC = () => {
 
                 {/* --- PANE 3: IDEA GENERATOR --- */}
                 {activeTab === 'ideas' && (
-                    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 pb-20">
+                    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 pb-6">
                         <div className="text-center">
                             <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-2">Idea Spark</h3>
                             <p className="text-text-secondary text-sm sm:text-base">Enter your industry or a loose concept. We'll generate project candidates.</p>
