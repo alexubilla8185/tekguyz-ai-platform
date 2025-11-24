@@ -17,6 +17,7 @@ const ProjectFormModal = React.lazy(() => import('./components/modals/ProjectFor
 const AIFeaturesModal = React.lazy(() => import('./components/modals/AIFeaturesModal'));
 const ChatPanel = React.lazy(() => import('./components/modals/ChatPanel'));
 const CaseStudyModal = React.lazy(() => import('./components/modals/CaseStudyModal'));
+const ProjectInfoModal = React.lazy(() => import('./components/modals/ProjectInfoModal')); // New Import
 
 // --- Suspense Fallbacks ---
 
@@ -51,6 +52,7 @@ const AppLayout: React.FC = () => {
   const { 
     showProjectFormModal,
     showAIFeaturesModal,
+    showProjectInfoModal,
     selectedCaseStudy
   } = useGlobal();
 
@@ -90,6 +92,10 @@ const AppLayout: React.FC = () => {
       
       <Suspense fallback={selectedCaseStudy ? <ModalLoadingSpinner /> : null}>
          {selectedCaseStudy && <CaseStudyModal />}
+      </Suspense>
+
+      <Suspense fallback={showProjectInfoModal ? <ModalLoadingSpinner /> : null}>
+         {showProjectInfoModal && <ProjectInfoModal />}
       </Suspense>
 
       <Suspense fallback={null}>

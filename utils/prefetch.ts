@@ -33,3 +33,8 @@ export const prefetchCaseStudy = () => {
 export const prefetchWorkSection = () => {
     import('../components/ui/WorkSection');
 };
+
+// Prefetch the Project Info (Easter Egg) Modal
+export const prefetchProjectInfo = () => {
+    import('../components/modals/ProjectInfoModal');
+};

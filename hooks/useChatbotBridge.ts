@@ -65,7 +65,7 @@ export const useChatbotBridge = () => {
     if (userMsgCount === 0) return "User has not actively participated yet.";
 
     // Simple heuristic summary
-    return `Session Summary: User exchanged ${userMsgCount} messages. Last topic of interest appeared to be: "${lastUserMsg?.text}". (Auto-generated via Nexus Bridge)`;
+    return `Session Summary: User exchanged ${userMsgCount} messages. Last topic of interest appeared to be: "${lastUserMsg?.text}". (Auto-generated via TEKGUYZ Bridge)`;
   };
 
   return {

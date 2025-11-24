@@ -70,6 +70,7 @@ export interface GlobalState {
   showProjectFormModal: boolean;
   showAIFeaturesModal: boolean;
   showChatPanel: boolean;
+  showProjectInfoModal: boolean;
   selectedCaseStudy: CaseStudy | null;
   activeSection: string;
   // chatHistory moved to ChatState
@@ -95,6 +96,7 @@ export interface GlobalContextType extends GlobalState {
   setShowProjectFormModal: (show: boolean) => void;
   setShowAIFeaturesModal: (show: boolean) => void;
   setShowChatPanel: (show: boolean) => void;
+  setShowProjectInfoModal: (show: boolean) => void;
   setSelectedCaseStudy: (study: CaseStudy | null) => void;
   setActiveSection: (section: string) => void;
   // Chat setters moved to ChatContextType

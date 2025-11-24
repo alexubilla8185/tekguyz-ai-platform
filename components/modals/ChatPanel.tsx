@@ -168,7 +168,7 @@ const ChatPanel: React.FC = () => {
             </div>
             <div>
               <h2 id="chat-panel-title" className="font-bold text-text-primary">
-                Nexus Assistant
+                TEKGUYZ Assistant
               </h2>
               <p className="text-xs text-text-secondary">AI-Powered Support</p>
             </div>
@@ -191,7 +191,7 @@ const ChatPanel: React.FC = () => {
           {chatHistory.length === 0 && !isTyping && (
              <div className="flex flex-col items-center justify-center h-full text-center space-y-4 opacity-50">
                <Sparkles className="h-12 w-12 text-accent" aria-hidden="true" />
-               <p className="text-sm">Connecting to Nexus AI...</p>
+               <p className="text-sm">Connecting to TEKGUYZ AI...</p>
              </div>
           )}
 
@@ -280,7 +280,7 @@ const ChatPanel: React.FC = () => {
           </div>
           <div className="text-center mt-2">
             <p className="text-[10px] text-text-secondary/60">
-                Nexus AI can make mistakes. Please verify important info.
+                TEKGUYZ AI can make mistakes. Please verify important info.
             </p>
           </div>
         </div>

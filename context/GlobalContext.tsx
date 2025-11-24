@@ -4,7 +4,7 @@ import { GlobalContextType, ChatContextType, Theme, ChatMessage, CaseStudy, Acce
 
 // UPDATED: Colors moved to 600-series for WCAG AA (4.5:1) Compliance on white text
 export const ACCENT_COLORS: AccentColor[] = [
-  { name: 'Nexus Blue', value: '37 99 235', hex: '#2563EB' },   // blue-600
+  { name: 'TEKGUYZ Blue', value: '37 99 235', hex: '#2563EB' },   // blue-600
   { name: 'Vivid Purple', value: '124 58 237', hex: '#7C3AED' }, // violet-600
   { name: 'Emerald', value: '5 150 105', hex: '#059669' },      // emerald-600
   { name: 'Rose', value: '225 29 72', hex: '#E11D48' },         // rose-600
@@ -20,6 +20,7 @@ const defaultGlobalState: GlobalContextType = {
   showProjectFormModal: false,
   showAIFeaturesModal: false,
   showChatPanel: false,
+  showProjectInfoModal: false,
   selectedCaseStudy: null,
   activeSection: 'hero',
   aiContext: [],
@@ -33,6 +34,7 @@ const defaultGlobalState: GlobalContextType = {
   setShowProjectFormModal: () => {},
   setShowAIFeaturesModal: () => {},
   setShowChatPanel: () => {},
+  setShowProjectInfoModal: () => {},
   setSelectedCaseStudy: () => {},
   setActiveSection: () => {},
   setAiContext: () => {},
@@ -60,6 +62,7 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const [showProjectFormModal, setShowProjectFormModalState] = useState(false);
   const [showAIFeaturesModal, setShowAIFeaturesModalState] = useState(false);
   const [showChatPanel, setShowChatPanelState] = useState(false);
+  const [showProjectInfoModal, setShowProjectInfoModalState] = useState(false);
   const [selectedCaseStudy, setSelectedCaseStudyState] = useState<CaseStudy | null>(null);
   const [activeSection, setActiveSection] = useState('hero');
 
@@ -119,6 +122,7 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (show) {
       setShowAIFeaturesModalState(false);
       setShowChatPanelState(false);
+      setShowProjectInfoModalState(false);
       setSelectedCaseStudyState(null);
       setIsMobileMenuOpen(false);
     }
@@ -129,6 +133,7 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (show) {
       setShowProjectFormModalState(false);
       setShowChatPanelState(false);
+      setShowProjectInfoModalState(false);
       setSelectedCaseStudyState(null);
       setIsMobileMenuOpen(false);
     }
@@ -139,10 +144,22 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     if (show) {
       setShowProjectFormModalState(false);
       setShowAIFeaturesModalState(false);
+      setShowProjectInfoModalState(false);
       setSelectedCaseStudyState(null);
       setIsMobileMenuOpen(false);
     }
     setShowChatPanelState(show);
+  };
+
+  const setShowProjectInfoModal = (show: boolean) => {
+    if (show) {
+      setShowProjectFormModalState(false);
+      setShowAIFeaturesModalState(false);
+      setShowChatPanelState(false);
+      setSelectedCaseStudyState(null);
+      setIsMobileMenuOpen(false);
+    }
+    setShowProjectInfoModalState(show);
   };
 
   const setSelectedCaseStudy = (study: CaseStudy | null) => {
@@ -150,6 +167,7 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       setShowProjectFormModalState(false);
       setShowAIFeaturesModalState(false);
       setShowChatPanelState(false);
+      setShowProjectInfoModalState(false);
       setIsMobileMenuOpen(false);
     }
     setSelectedCaseStudyState(study);
@@ -169,6 +187,7 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     showProjectFormModal,
     showAIFeaturesModal,
     showChatPanel,
+    showProjectInfoModal,
     selectedCaseStudy,
     activeSection,
     aiContext,
@@ -182,6 +201,7 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setShowProjectFormModal,
     setShowAIFeaturesModal,
     setShowChatPanel,
+    setShowProjectInfoModal,
     setSelectedCaseStudy,
     setActiveSection,
     setAiContext,
@@ -190,7 +210,7 @@ export const GlobalProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     setAmbientParticleDensity,
   }), [
     theme, accentColor, isMobileMenuOpen, 
-    showProjectFormModal, showAIFeaturesModal, showChatPanel, 
+    showProjectFormModal, showAIFeaturesModal, showChatPanel, showProjectInfoModal,
     selectedCaseStudy, activeSection, 
     aiContext, userIntent, userIntentProfile, ambientParticleDensity
   ]);

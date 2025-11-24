@@ -246,6 +246,21 @@
 </script>
 </head>
 <body class="bg-background text-text-primary antialiased selection:bg-accent/30 selection:text-text-primary">
+    
+    <!-- NETLIFY FORMS: Hidden Form for Static Site Detection -->
+    <!-- This allows Netlify's build bots to register the form capability without a backend -->
+    <form name="project-contact" netlify netlify-honeypot="bot-field" hidden>
+        <input type="text" name="name" />
+        <input type="email" name="email" />
+        <input type="text" name="company" />
+        <input type="text" name="goals" />
+        <input type="text" name="scope" />
+        <input type="text" name="timeline" />
+        <textarea name="notes"></textarea>
+        <input type="hidden" name="form-name" value="project-contact" />
+        <input name="bot-field" />
+    </form>
+
     <div id="root"></div>
 </body>
 </html>

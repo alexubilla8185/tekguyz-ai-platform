@@ -2,14 +2,14 @@
 import React from 'react';
 import { ArrowRight, Sparkles, Play } from 'lucide-react';
 import { useGlobal } from '../../context/GlobalContext';
-import { prefetchProjectForm, prefetchAIFeatures, prefetchWorkSection } from '../../utils/prefetch';
+import { prefetchProjectForm, prefetchAIFeatures, prefetchWorkSection, prefetchProjectInfo } from '../../utils/prefetch';
 
 interface HeroSectionProps {
   id: string;
 }
 
 const HeroSection: React.FC<HeroSectionProps> = ({ id }) => {
-  const { setShowProjectFormModal, setShowAIFeaturesModal } = useGlobal();
+  const { setShowProjectFormModal, setShowAIFeaturesModal, setShowProjectInfoModal } = useGlobal();
 
   const handleScrollToWork = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -40,12 +40,17 @@ const HeroSection: React.FC<HeroSectionProps> = ({ id }) => {
           {/* Left Column: Text Content */}
           <div className="flex flex-col space-y-8 text-center md:text-left z-10 max-w-2xl mx-auto md:mx-0">
             
-            {/* Value Badge */}
+            {/* Value Badge (EASTER EGG TRIGGER) */}
             <div className="header-fade">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface/50 border border-surface-high backdrop-blur-sm text-sm font-medium text-accent">
-                <Sparkles className="w-3.5 h-3.5" />
+              <button 
+                onClick={() => setShowProjectInfoModal(true)}
+                onMouseEnter={prefetchProjectInfo}
+                className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-surface/50 border border-surface-high backdrop-blur-sm text-sm font-medium text-accent hover:bg-accent/10 hover:border-accent/30 transition-all cursor-pointer group"
+                aria-label="View Project Architecture"
+              >
+                <Sparkles className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" />
                 <span>AI For Growing Teams</span>
-              </span>
+              </button>
             </div>
 
             {/* Headline */}
@@ -118,8 +123,14 @@ const HeroSection: React.FC<HeroSectionProps> = ({ id }) => {
                  <circle cx="200" cy="200" r="150" stroke="currentColor" strokeWidth="1" fill="none" className="text-accent" strokeDasharray="2 10" />
               </svg>
 
-              {/* Floating Interface Element */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-surface/80 backdrop-blur-xl border border-surface-high rounded-2xl shadow-2xl p-6 transform -rotate-6 hover:rotate-0 transition-transform duration-500 cursor-default card-hover">
+              {/* Floating Interface Element (EASTER EGG TRIGGER) */}
+              <div 
+                onClick={() => setShowProjectInfoModal(true)}
+                onMouseEnter={prefetchProjectInfo}
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 bg-surface/80 backdrop-blur-xl border border-surface-high rounded-2xl shadow-2xl p-6 transform -rotate-6 hover:rotate-0 hover:scale-105 transition-all duration-500 cursor-pointer card-hover group"
+                role="button"
+                aria-label="View Project Info"
+              >
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex gap-2">
                     <div className="w-3 h-3 rounded-full bg-red-500/50" />
@@ -129,7 +140,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ id }) => {
                   <div className="h-2 w-16 bg-surface-high rounded-full" />
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border border-surface-high">
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border border-surface-high group-hover:border-accent/30 transition-colors">
                     <div className="w-8 h-8 rounded bg-accent/20 flex items-center justify-center">
                       <Sparkles className="w-4 h-4 text-accent" />
                     </div>

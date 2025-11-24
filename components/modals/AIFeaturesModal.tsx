@@ -139,7 +139,7 @@ const AIFeaturesModal: React.FC = () => {
                 <h2 id="ai-features-title" className="text-xl font-bold text-text-primary">
                 AI Playground
                 </h2>
-                <p className="text-xs text-text-secondary">Explore Nexus capabilities in real-time</p>
+                <p className="text-xs text-text-secondary">Explore TEKGUYZ capabilities in real-time</p>
             </div>
           </div>
           <button
