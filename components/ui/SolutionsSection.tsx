@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Bot, Workflow, LineChart, Users } from 'lucide-react';
 import RevealOnScroll from './RevealOnScroll';
@@ -40,7 +41,7 @@ const SolutionsSection: React.FC<SolutionsSectionProps> = ({ id }) => {
         {/* Section Header */}
         <RevealOnScroll>
           <div className="mb-16 max-w-3xl">
-              <h2 className="type-headline mb-6">Solve specific problems.</h2>
+              <h2 className="type-headline mb-6">Solve specific problems</h2>
               <p className="type-body text-xl text-text-secondary leading-relaxed">
                   Off-the-shelf software is too generic. Spreadsheets are too messy. We build the missing link tailored to your workflow.
               </p>

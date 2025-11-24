@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Zap, ShieldCheck, BarChart3, CheckCircle2 } from 'lucide-react';
 import RevealOnScroll from './RevealOnScroll';
@@ -41,7 +42,7 @@ const AboutSection: React.FC<AboutSectionProps> = ({ id }) => {
             <RevealOnScroll>
               <div className="space-y-4">
                 <h2 className="type-headline text-text-primary">
-                  Practical Tech. No Magic Tricks.
+                  Practical Tech. No Magic Tricks
                 </h2>
                 <p className="type-body text-lg">
                   You don't need a research lab. You need software that works. We build tools that remove bottlenecks so your team can focus on serving customers and closing deals.

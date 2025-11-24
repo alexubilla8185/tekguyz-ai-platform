@@ -58,7 +58,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ id }) => {
               Custom software that actually works for{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-blue-400">
                 your business
-              </span>.
+              </span>
             </h1>
 
             {/* Subheadline */}

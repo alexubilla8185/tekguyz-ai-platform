@@ -134,7 +134,7 @@ const WorkSection: React.FC<WorkSectionProps> = ({ id }) => {
         {/* Section Header */}
         <RevealOnScroll>
           <div className="mb-16">
-            <h2 className="type-headline mb-4">Real Impact.</h2>
+            <h2 className="type-headline mb-4">Real Impact</h2>
             <p className="type-body max-w-2xl">
               Numbers speak louder than buzzwords. Here is how we have helped other teams reclaim their time and grow their bottom line.
             </p>

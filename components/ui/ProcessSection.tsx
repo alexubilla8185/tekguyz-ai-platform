@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Target, Workflow, Code2, Rocket } from 'lucide-react';
 import RevealOnScroll from './RevealOnScroll';
@@ -40,7 +41,7 @@ const ProcessSection: React.FC<ProcessSectionProps> = ({ id }) => {
         {/* Header */}
         <RevealOnScroll>
           <div className="mb-16 text-center max-w-2xl mx-auto">
-            <h2 className="type-headline mb-4">The Roadmap.</h2>
+            <h2 className="type-headline mb-4">The Roadmap</h2>
             <p className="type-body text-text-secondary">
               A transparent path from chaos to clarity. Four weeks to a smarter business.
             </p>
