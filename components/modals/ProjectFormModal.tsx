@@ -1,28 +1,90 @@
 
-import React, { useState, useEffect } from 'react';
-import { X, Send, Sparkles, ChevronRight, ChevronLeft, Undo, Check, BrainCircuit, RefreshCw, Rocket, ArrowRight, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Send, Sparkles, ChevronRight, ChevronLeft, Undo, Check, BrainCircuit, RefreshCw, Briefcase, Target, Layers, Mail, Phone, Clock, DollarSign } from 'lucide-react';
 import { useGlobal, useChat } from '../../context/GlobalContext';
 import { geminiService } from '../../utils/gemini';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
 
+// --- Types ---
+
 interface FormData {
-  name: string;
-  email: string;
-  company: string;
-  goals: string;
-  scope: string;
+  // Step 1: Business Context
+  industry: string;
+  companySize: string;
+  description: string;
+  
+  // Step 2: Challenge & Goals
+  targetMetrics: string;
+  painPoints: string;
+  
+  // Step 3: Scope & Timeline
+  features: string[];
+  budgetBand: 'Fast' | 'Standard' | 'Flexible';
   timeline: string;
-  notes: string;
+  
+  // Step 4: Contact
+  email: string;
+  phone: string;
+  saveChatHistory: boolean;
 }
 
 const initialFormData: FormData = {
-  name: '',
-  email: '',
-  company: '',
-  goals: '',
-  scope: '',
+  industry: '',
+  companySize: '',
+  description: '',
+  targetMetrics: '',
+  painPoints: '',
+  features: [],
+  budgetBand: 'Standard',
   timeline: '',
-  notes: ''
+  email: '',
+  phone: '',
+  saveChatHistory: true
+};
+
+const FEATURES_LIST = [
+  "Web App", "Mobile App", "Automation", "Dashboard", "AI Agent", "CRM Integration", "E-commerce", "Internal Tool"
+];
+
+const TIMELINE_OPTS = ["ASAP", "1-2 Months", "3-6 Months", "Flexible"];
+
+const COMPANY_SIZES = ["1-10", "11-50", "51-200", "200+"];
+
+const STEPS = [
+  { label: "Context", icon: <Briefcase className="w-4 h-4" /> },
+  { label: "Goals", icon: <Target className="w-4 h-4" /> },
+  { label: "Scope", icon: <Layers className="w-4 h-4" /> },
+  { label: "Contact", icon: <Mail className="w-4 h-4" /> }
+];
+
+// --- Confetti Component ---
+const ConfettiParticles = () => {
+  const particles = Array.from({ length: 20 }).map((_, i) => ({
+    id: i,
+    x: Math.random() * 100 - 50,
+    y: Math.random() * -100 - 50,
+    color: ['#3b82f6', '#10b981', '#f59e0b', '#ec4899'][Math.floor(Math.random() * 4)],
+    delay: Math.random() * 0.2
+  }));
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center z-50">
+      {particles.map((p) => (
+        <div
+          key={p.id}
+          className="absolute w-3 h-3 rounded-full animate-confetti opacity-0"
+          style={{
+            backgroundColor: p.color,
+            '--tx': `${p.x}vw`,
+            '--ty': `${p.y}vh`,
+            animationDelay: `${p.delay}s`,
+            animationDuration: '3s',
+            animationName: 'confetti-explode'
+          } as React.CSSProperties}
+        />
+      ))}
+    </div>
+  );
 };
 
 const ProjectFormModal: React.FC = () => {
@@ -38,28 +100,32 @@ const ProjectFormModal: React.FC = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [validationError, setValidationError] = useState<string | null>(null);
+  
+  // Validation
+  const [errors, setErrors] = useState<Partial<Record<keyof FormData, boolean>>>({});
+  const [isShaking, setIsShaking] = useState(false);
 
-  // --- AI States ---
+  // AI States
   const [isRefining, setIsRefining] = useState(false);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [undoStack, setUndoStack] = useState<{ field: keyof FormData, value: string } | null>(null);
-  const [aiMessage, setAiMessage] = useState<string | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Focus Trap
   const containerRef = useFocusTrap(() => setShowProjectFormModal(false));
 
-  // --- Initialization from Bridge Data ---
+  // --- Initialization ---
   useEffect(() => {
     if (showProjectFormModal && userIntent && !isSubmitted) {
       setFormData(prev => ({
         ...prev,
-        name: userIntent.contact?.name || prev.name,
+        industry: userIntent.companyInfo?.industry || prev.industry,
+        companySize: userIntent.companyInfo?.size || prev.companySize,
+        description: userIntent.companyInfo?.description || prev.description,
+        features: userIntent.scope?.features || prev.features,
+        painPoints: userIntent.goals?.primary || prev.painPoints,
         email: userIntent.contact?.email || prev.email,
-        company: userIntent.companyInfo?.name || prev.company,
-        goals: userIntent.goals?.primary || prev.goals,
-        scope: userIntent.scope?.features?.join(', ') || prev.scope,
-        timeline: userIntent.timeline?.expectedStart || prev.timeline
+        phone: userIntent.contact?.phone || prev.phone,
       }));
     }
   }, [showProjectFormModal, userIntent, isSubmitted]);
@@ -71,467 +137,493 @@ const ProjectFormModal: React.FC = () => {
         setStep(1);
         setIsSubmitted(false);
         setFormData(initialFormData);
-        setAiMessage(null);
-        setUndoStack(null);
-        setValidationError(null);
+        setErrors({});
+        setToastMessage(null);
       }, 300);
     }
   }, [showProjectFormModal]);
 
+  // Toast Timer
+  useEffect(() => {
+    if (toastMessage) {
+      const timer = setTimeout(() => setToastMessage(null), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toastMessage]);
+
   if (!showProjectFormModal) return null;
 
-  // --- Handlers ---
+  // --- Helpers ---
 
-  const handleChange = (field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (validationError) setValidationError(null); // Clear error on edit
+  const triggerShake = () => {
+    setIsShaking(true);
+    setTimeout(() => setIsShaking(false), 500);
   };
 
   const validateStep = (currentStep: number): boolean => {
+    const newErrors: Partial<Record<keyof FormData, boolean>> = {};
+    let isValid = true;
+
     if (currentStep === 1) {
-        if (!formData.name.trim() || !formData.email.trim()) {
-            setValidationError("Please fill in your name and email.");
-            return false;
-        }
-        if (!formData.email.includes('@')) {
-            setValidationError("Please enter a valid email address.");
-            return false;
-        }
+      if (!formData.industry.trim()) { newErrors.industry = true; isValid = false; }
+      if (!formData.companySize) { newErrors.companySize = true; isValid = false; }
     }
     if (currentStep === 2) {
-        if (!formData.goals.trim()) {
-            setValidationError("Please tell us a bit about your goals.");
-            return false;
-        }
+      if (!formData.painPoints.trim()) { newErrors.painPoints = true; isValid = false; }
     }
-    return true;
+    if (currentStep === 3) {
+      if (formData.features.length === 0) { newErrors.features = true; isValid = false; }
+      if (!formData.timeline) { newErrors.timeline = true; isValid = false; }
+    }
+    if (currentStep === 4) {
+      if (!formData.email.trim() || !formData.email.includes('@')) { newErrors.email = true; isValid = false; }
+    }
+
+    setErrors(newErrors);
+    if (!isValid) triggerShake();
+    return isValid;
   };
 
   const handleNext = () => {
     if (validateStep(step)) {
-        setStep(prev => Math.min(prev + 1, 4));
-        setValidationError(null);
+      setStep(prev => Math.min(prev + 1, 4));
     }
   };
 
   const handleBack = () => {
-      setStep(prev => Math.max(prev - 1, 1));
-      setValidationError(null);
+    setStep(prev => Math.max(prev - 1, 1));
   };
 
   const handleSubmit = () => {
     if (validateStep(step)) {
-        setIsSubmitted(true);
+      setIsSubmitted(true);
+      setTimeout(() => {
+        setShowProjectFormModal(false);
+      }, 3000);
     }
   };
 
-  const handleStartNew = () => {
-    setIsSubmitted(false);
-    setStep(1);
-    setFormData(initialFormData);
+  const handleChange = (field: keyof FormData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: false }));
+    }
   };
 
-  const handleGoToWork = () => {
-    setShowProjectFormModal(false);
-    // Use a small timeout to allow modal close animation to start
-    setTimeout(() => {
-        const element = document.getElementById('work');
-        if (element) {
-            const headerOffset = 80;
-            const elementPosition = element.getBoundingClientRect().top;
-            const offsetPosition = elementPosition + window.scrollY - headerOffset;
-            window.scrollTo({
-                top: offsetPosition,
-                behavior: "smooth"
-            });
-        }
-    }, 100);
+  const toggleFeature = (feature: string) => {
+    setFormData(prev => {
+      const exists = prev.features.includes(feature);
+      const newFeatures = exists 
+        ? prev.features.filter(f => f !== feature) 
+        : [...prev.features, feature];
+      return { ...prev, features: newFeatures };
+    });
+    if (errors.features) setErrors(prev => ({ ...prev, features: false }));
   };
 
-  // AI Feature: Refine Text (Step 2)
-  const handleRefineGoals = async () => {
-    if (!formData.goals.trim()) return;
+  const formatPhone = (val: string) => {
+    const cleaned = ('' + val).replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      return '(' + match[1] + ') ' + match[2] + '-' + match[3];
+    }
+    return val;
+  };
+
+  // --- AI Actions ---
+
+  const handleRefinePainPoints = async () => {
+    if (!formData.painPoints.trim()) return;
     
     setIsRefining(true);
-    setAiMessage(null);
-    setUndoStack({ field: 'goals', value: formData.goals });
+    setUndoStack({ field: 'painPoints', value: formData.painPoints });
 
     try {
-      const response = await geminiService.refineText(formData.goals);
+      const response = await geminiService.refineText(formData.painPoints);
       if (response.status === 'success' && response.data) {
-        handleChange('goals', response.data);
-        setAiMessage("Text polished for clarity!");
-      } else {
-        setAiMessage("We couldn't polish your text just now. Feel free to keep writing.");
+        handleChange('painPoints', response.data);
+        setToastMessage("Polished for clarity");
       }
-    } catch (e) {
-      setAiMessage("We couldn't polish your text just now. Feel free to keep writing.");
     } finally {
       setIsRefining(false);
-      setTimeout(() => setAiMessage(null), 3000);
     }
   };
 
-  // AI Feature: Undo Refine
+  const handleSummarizeChat = async () => {
+    if (chatHistory.length === 0) return;
+    setIsSummarizing(true);
+    try {
+      const response = await geminiService.summarizeChat(chatHistory);
+      if (response.status === 'success' && response.data) {
+        const current = formData.description ? formData.description + "\n\n" : "";
+        handleChange('description', current + "[Chat Summary]: " + response.data);
+        setToastMessage("Context added from chat");
+      }
+    } finally {
+      setIsSummarizing(false);
+    }
+  };
+
   const handleUndo = () => {
     if (undoStack) {
       handleChange(undoStack.field, undoStack.value);
       setUndoStack(null);
-      setAiMessage("Changes reverted.");
-      setTimeout(() => setAiMessage(null), 2000);
+      setToastMessage("Changes reverted");
     }
   };
 
-  // AI Feature: Summarize Chat (Step 3)
-  const handleSummarizeChat = async () => {
-    if (chatHistory.length === 0) {
-      setAiMessage("No chat history to summarize.");
-      return;
-    }
-
-    setIsSummarizing(true);
-    setAiMessage(null);
-
-    try {
-      const response = await geminiService.summarizeChat(chatHistory);
-      if (response.status === 'success' && response.data) {
-        const currentNotes = formData.notes ? formData.notes + "\n\n" : "";
-        handleChange('notes', currentNotes + "AI Context Summary:\n" + response.data);
-        setAiMessage("Chat context added to notes.");
-      } else {
-        setAiMessage("We couldn't summarize the chat right now. You can enter notes manually.");
-      }
-    } catch (e) {
-      setAiMessage("We couldn't summarize the chat right now. You can enter notes manually.");
-    } finally {
-      setIsSummarizing(false);
-      setTimeout(() => setAiMessage(null), 3000);
-    }
-  };
+  // --- Rendering ---
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="project-modal-title"
     >
+      <style>{`
+        @keyframes confetti-explode {
+          0% { transform: translate(0,0) scale(1); opacity: 1; }
+          100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          25% { transform: translateX(-4px); }
+          75% { transform: translateX(4px); }
+        }
+        .animate-shake { animation: shake 0.4s ease-in-out; }
+      `}</style>
+
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/70 backdrop-blur-md transition-opacity"
         onClick={() => setShowProjectFormModal(false)}
-        aria-hidden="true"
       />
 
-      {/* Modal Container */}
+      {/* Modal */}
       <div 
         ref={containerRef}
-        className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[85vh] sm:max-w-2xl bg-surface border border-surface-high rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-2 duration-300 sm:zoom-in-95"
+        className={`relative w-full max-w-2xl bg-surface border border-surface-high rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 max-h-[90vh] ${isShaking ? 'animate-shake' : ''} ${isSubmitted ? 'scale-105' : 'animate-in zoom-in-95'}`}
       >
         
-        {/* SUCCESS STATE */}
-        {isSubmitted ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8 space-y-8 animate-in fade-in zoom-in duration-500">
-                <div className="relative">
-                    <div className="absolute inset-0 bg-accent/20 blur-2xl rounded-full animate-pulse-slow" />
-                    <div className="relative w-24 h-24 bg-surface border border-surface-high rounded-full flex items-center justify-center shadow-xl shadow-accent/10">
-                        <Rocket className="w-10 h-10 text-accent animate-bounce" style={{ animationDuration: '3s' }} />
-                    </div>
-                </div>
-                
-                <div className="space-y-4 max-w-md">
-                    <h2 className="text-3xl font-bold text-text-primary">We've got your blueprint!</h2>
-                    <p className="text-text-secondary text-lg leading-relaxed">
-                        Thanks {formData.name || 'partner'}. <br/>
-                        We're analyzing your roadmap now. Expect a personal reach-out at <span className="text-text-primary font-medium">{formData.email}</span> within 24 hours.
-                    </p>
-                </div>
+        {isSubmitted && <ConfettiParticles />}
 
-                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm pt-4">
-                    <button
-                        onClick={handleGoToWork}
-                        className="flex-1 px-6 py-4 bg-accent text-white font-bold rounded-xl hover:shadow-lg hover:shadow-accent/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 btn-press"
-                    >
-                        See Our Work <ArrowRight className="w-5 h-5" />
-                    </button>
-                    <button
-                        onClick={handleStartNew}
-                        className="flex-1 px-6 py-4 bg-surface border border-surface-high text-text-secondary font-bold rounded-xl hover:text-text-primary hover:bg-surface-high transition-all btn-press"
-                    >
-                        Start Another
-                    </button>
+        {/* Header */}
+        {!isSubmitted && (
+          <div className="bg-surface border-b border-surface-high p-6">
+             <div className="flex justify-between items-center mb-8">
+                <div>
+                   <h2 className="text-2xl font-bold text-text-primary">Project Blueprint</h2>
+                   <p className="text-sm text-text-secondary">Let's scope your solution.</p>
                 </div>
-                
-                <button 
-                  onClick={() => setShowProjectFormModal(false)}
-                  className="absolute top-4 right-4 p-2 text-text-secondary hover:text-text-primary rounded-full hover:bg-surface-high transition-colors"
-                >
-                  <X className="w-6 h-6" />
+                <button onClick={() => setShowProjectFormModal(false)} className="text-text-secondary hover:text-text-primary btn-press">
+                   <X className="w-6 h-6" />
                 </button>
-            </div>
-        ) : (
-        <>
-            {/* STANDARD FORM STATE */}
-            
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-surface-high bg-surface/50">
-            <div>
-                <h2 id="project-modal-title" className="text-xl font-bold text-text-primary">
-                Project Roadmap
-                </h2>
-                <div className="text-xs text-text-secondary mt-1" aria-live="polite">
-                Step {step} of 4
-                </div>
-            </div>
-            <button
-                onClick={() => setShowProjectFormModal(false)}
-                className="p-2 text-text-secondary hover:text-text-primary hover:bg-surface-high rounded-full transition-colors btn-press"
-                aria-label="Close modal"
-            >
-                <X className="h-5 w-5" />
-            </button>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="w-full h-1 bg-surface-high" role="progressbar" aria-valuenow={(step / 4) * 100} aria-valuemin={0} aria-valuemax={100}>
-            <div 
-                className="h-full bg-accent transition-all duration-300 ease-out"
-                style={{ width: `${(step / 4) * 100}%` }}
-            />
-            </div>
-
-            {/* Content Body */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-            
-            {/* Validation Error Banner */}
-            {validationError && (
-                <div className="mb-6 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3 animate-in slide-in-from-top-2">
-                    <AlertCircle className="w-5 h-5 shrink-0" />
-                    <span className="text-sm font-medium">{validationError}</span>
-                </div>
-            )}
-            
-            {/* STEP 1: Contact Info */}
-            {step === 1 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
-                <h3 className="text-2xl font-bold text-text-primary">Let's start with the basics.</h3>
-                <div className="space-y-4">
-                    <div>
-                    <label htmlFor="name" className="block text-xs font-bold text-text-secondary uppercase mb-2">Name <span className="text-accent">*</span></label>
-                    <input 
-                        id="name"
-                        type="text" 
-                        value={formData.name}
-                        onChange={(e) => handleChange('name', e.target.value)}
-                        className="w-full p-3 rounded-lg bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent"
-                        placeholder="Jane Doe"
-                        required
-                    />
-                    </div>
-                    <div>
-                    <label htmlFor="email" className="block text-xs font-bold text-text-secondary uppercase mb-2">Email <span className="text-accent">*</span></label>
-                    <input 
-                        id="email"
-                        type="email" 
-                        value={formData.email}
-                        onChange={(e) => handleChange('email', e.target.value)}
-                        className="w-full p-3 rounded-lg bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent"
-                        placeholder="jane@company.com"
-                        required
-                    />
-                    </div>
-                    <div>
-                    <label htmlFor="company" className="block text-xs font-bold text-text-secondary uppercase mb-2">Company / Organization</label>
-                    <input 
-                        id="company"
-                        type="text" 
-                        value={formData.company}
-                        onChange={(e) => handleChange('company', e.target.value)}
-                        className="w-full p-3 rounded-lg bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent"
-                        placeholder="Acme Corp"
-                    />
-                    </div>
-                </div>
-                </div>
-            )}
-
-            {/* STEP 2: Challenges & Goals (AI ENHANCED) */}
-            {step === 2 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
-                <h3 className="text-2xl font-bold text-text-primary">What are we solving?</h3>
+             </div>
+             
+             {/* Clean Standard Stepper */}
+             <div className="relative flex items-center justify-between px-4">
+                {/* Connecting Line */}
+                <div className="absolute left-4 right-4 top-1/2 -translate-y-1/2 h-0.5 bg-surface-high -z-10" />
                 
-                <div className="relative group">
-                    <label htmlFor="goals" className="block text-xs font-bold text-text-secondary uppercase mb-2">Primary Business Goals <span className="text-accent">*</span></label>
-                    <textarea 
-                    id="goals"
-                    value={formData.goals}
-                    onChange={(e) => handleChange('goals', e.target.value)}
-                    className="w-full h-40 p-4 rounded-lg bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent resize-none leading-relaxed"
-                    placeholder="e.g. We need to automate our invoicing process to save 10 hours a week..."
-                    required
-                    />
+                {STEPS.map((stepItem, index) => {
+                    const stepNum = index + 1;
+                    const isActive = step === stepNum;
+                    const isCompleted = step > stepNum;
                     
-                    {/* AI Tools Bar */}
-                    <div className="absolute bottom-4 right-4 flex items-center gap-2">
-                    {aiMessage && (
-                        <span className="text-xs text-accent font-medium animate-in fade-in" aria-live="polite">{aiMessage}</span>
-                    )}
-                    
-                    {undoStack && (
-                        <button
-                        onClick={handleUndo}
-                        className="p-2 bg-surface border border-surface-high text-text-secondary rounded-lg hover:text-text-primary transition-colors text-xs font-medium flex items-center gap-1 btn-press"
-                        aria-label="Undo AI changes"
-                        >
-                        <Undo className="w-3 h-3" /> Undo
-                        </button>
-                    )}
-
-                    <button
-                        onClick={handleRefineGoals}
-                        disabled={isRefining || !formData.goals}
-                        className="px-3 py-1.5 bg-accent/10 border border-accent/20 text-accent rounded-lg hover:bg-accent hover:text-white transition-colors text-xs font-bold flex items-center gap-2 btn-press"
-                    >
-                        {isRefining ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                        Polish with AI
-                    </button>
-                    </div>
-                </div>
-                
-                <p className="text-xs text-text-secondary">
-                    Tip: Be specific about the outcomes you want (e.g., "Reduce errors by 50%").
-                </p>
-                </div>
-            )}
-
-            {/* STEP 3: Scope & Timeline (AI ENHANCED) */}
-            {step === 3 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
-                <h3 className="text-2xl font-bold text-text-primary">Scope & Context</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="scope" className="block text-xs font-bold text-text-secondary uppercase mb-2">Key Features Needed</label>
-                        <input 
-                        id="scope"
-                        type="text" 
-                        value={formData.scope}
-                        onChange={(e) => handleChange('scope', e.target.value)}
-                        className="w-full p-3 rounded-lg bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent"
-                        placeholder="e.g. Dashboard, Mobile App, API"
-                        />
-                    </div>
-                    <div>
-                        <label htmlFor="timeline" className="block text-xs font-bold text-text-secondary uppercase mb-2">Target Timeline</label>
-                        <input 
-                        id="timeline"
-                        type="text" 
-                        value={formData.timeline}
-                        onChange={(e) => handleChange('timeline', e.target.value)}
-                        className="w-full p-3 rounded-lg bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent"
-                        placeholder="e.g. Q4 2024, ASAP"
-                        />
-                    </div>
-                </div>
-
-                <div className="relative">
-                    <div className="flex justify-between items-center mb-2">
-                    <label htmlFor="notes" className="block text-xs font-bold text-text-secondary uppercase">Additional Notes</label>
-                    
-                    {/* Autofill Trigger */}
-                    <button 
-                        onClick={handleSummarizeChat}
-                        disabled={isSummarizing || chatHistory.length === 0}
-                        className="text-[10px] font-bold text-accent uppercase tracking-wider hover:underline flex items-center gap-1 disabled:opacity-50 btn-press"
-                    >
-                        {isSummarizing ? <RefreshCw className="w-3 h-3 animate-spin" /> : <BrainCircuit className="w-3 h-3" />}
-                        Summarize from Chat
-                    </button>
-                    </div>
-                    <textarea 
-                    id="notes"
-                    value={formData.notes}
-                    onChange={(e) => handleChange('notes', e.target.value)}
-                    className="w-full h-32 p-4 rounded-lg bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent resize-none"
-                    placeholder="Any other details? Or click 'Summarize from Chat' to auto-fill from your conversation."
-                    />
-                    {aiMessage && (
-                        <span className="absolute bottom-4 right-4 text-xs text-accent font-medium animate-in fade-in" aria-live="polite">{aiMessage}</span>
-                    )}
-                </div>
-                </div>
-            )}
-
-            {/* STEP 4: Review */}
-            {step === 4 && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
-                <div className="text-center space-y-2">
-                    <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4" aria-hidden="true">
-                        <Check className="w-8 h-8 text-accent" />
-                    </div>
-                    <h3 className="text-2xl font-bold text-text-primary">Ready to Launch?</h3>
-                    <p className="text-text-secondary">Review your details below before sending.</p>
-                </div>
-
-                <div className="bg-surface-high/20 rounded-xl p-6 space-y-4 text-sm border border-surface-high">
-                    <div className="grid grid-cols-3 gap-2">
-                        <span className="text-text-secondary">Contact:</span>
-                        <span className="col-span-2 font-medium text-text-primary">{formData.name} ({formData.email})</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                        <span className="text-text-secondary">Company:</span>
-                        <span className="col-span-2 font-medium text-text-primary">{formData.company}</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                        <span className="text-text-secondary">Goals:</span>
-                        <span className="col-span-2 font-medium text-text-primary">{formData.goals}</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                        <span className="text-text-secondary">Scope:</span>
-                        <span className="col-span-2 font-medium text-text-primary">{formData.scope}</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2">
-                        <span className="text-text-secondary">Notes:</span>
-                        <span className="col-span-2 font-medium text-text-primary whitespace-pre-wrap">{formData.notes || "None"}</span>
-                    </div>
-                </div>
-                </div>
-            )}
-
-            </div>
-
-            {/* Footer Navigation */}
-            <div className="p-4 sm:p-6 border-t border-surface-high bg-surface/50 flex justify-between items-center pb-8 sm:pb-6">
-            {step > 1 ? (
-                <button
-                onClick={handleBack}
-                className="px-4 py-2 text-sm font-medium text-text-secondary hover:text-text-primary transition-colors flex items-center gap-1 btn-press"
-                >
-                <ChevronLeft className="w-4 h-4" /> Back
-                </button>
-            ) : (
-                <div /> /* Spacer */
-            )}
-
-            {step < 4 ? (
-                <button
-                onClick={handleNext}
-                disabled={step === 1 ? (!formData.name || !formData.email) : step === 2 ? !formData.goals : false}
-                className="px-6 py-2 bg-text-primary text-background font-bold rounded-lg hover:bg-accent hover:text-white transition-all flex items-center gap-2 btn-press disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                Next Step <ChevronRight className="w-4 h-4" />
-                </button>
-            ) : (
-                <button
-                className="px-8 py-2 bg-accent text-white font-bold rounded-lg hover:shadow-lg hover:shadow-accent/20 transition-all flex items-center gap-2 btn-press"
-                onClick={handleSubmit}
-                >
-                Submit Project <Send className="w-4 h-4" />
-                </button>
-            )}
-            </div>
-        </>
+                    return (
+                        <div key={stepItem.label} className="flex flex-col items-center bg-surface px-2">
+                            <div 
+                                className={`
+                                    w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300
+                                    ${isActive 
+                                        ? 'bg-accent border-accent text-white shadow-lg shadow-accent/25' 
+                                        : isCompleted 
+                                            ? 'bg-green-500 border-green-500 text-white' 
+                                            : 'bg-surface border-surface-high text-text-secondary'
+                                    }
+                                `}
+                            >
+                                {isCompleted ? <Check className="w-5 h-5" /> : stepNum}
+                            </div>
+                            <span className={`text-xs font-bold mt-2 uppercase tracking-wide transition-colors ${isActive ? 'text-accent' : 'text-text-secondary'}`}>
+                                {stepItem.label}
+                            </span>
+                        </div>
+                    );
+                })}
+             </div>
+          </div>
         )}
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 scroll-smooth relative">
+            
+            {toastMessage && (
+               <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-accent text-white px-4 py-2 rounded-full text-xs font-bold shadow-lg animate-in fade-in slide-in-from-top-2 flex items-center gap-2 z-20">
+                  <Sparkles className="w-3 h-3" /> {toastMessage}
+               </div>
+            )}
+
+            {isSubmitted ? (
+               <div className="flex flex-col items-center justify-center py-12 text-center animate-in fade-in zoom-in duration-500">
+                  <div className="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mb-6">
+                     <Check className="w-10 h-10 text-green-500" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-text-primary mb-2">Received!</h2>
+                  <p className="text-text-secondary">We're analyzing your blueprint. <br/>Closing in 3 seconds...</p>
+               </div>
+            ) : (
+               <div className="space-y-6">
+
+                  {/* STEP 1: CONTEXT */}
+                  {step === 1 && (
+                     <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
+                        <div className="grid grid-cols-2 gap-4">
+                           <div className="space-y-2">
+                              <label className="text-xs font-bold text-text-secondary uppercase">Industry</label>
+                              <div className="relative">
+                                 <Briefcase className="absolute left-3 top-3 w-4 h-4 text-text-secondary" />
+                                 <input 
+                                    value={formData.industry}
+                                    onChange={(e) => handleChange('industry', e.target.value)}
+                                    className={`w-full pl-10 p-3 rounded-xl bg-background border ${errors.industry ? 'border-red-500' : 'border-surface-high'} text-text-primary focus:border-accent outline-none`}
+                                    placeholder="e.g. Healthcare"
+                                 />
+                              </div>
+                           </div>
+                           <div className="space-y-2">
+                              <label className="text-xs font-bold text-text-secondary uppercase">Company Size</label>
+                              <select 
+                                 value={formData.companySize}
+                                 onChange={(e) => handleChange('companySize', e.target.value)}
+                                 className={`w-full p-3 rounded-xl bg-background border ${errors.companySize ? 'border-red-500' : 'border-surface-high'} text-text-primary focus:border-accent outline-none appearance-none`}
+                              >
+                                 <option value="">Select...</option>
+                                 {COMPANY_SIZES.map(s => <option key={s} value={s}>{s} employees</option>)}
+                              </select>
+                           </div>
+                        </div>
+
+                        <div className="space-y-2">
+                           <div className="flex justify-between items-center">
+                              <label className="text-xs font-bold text-text-secondary uppercase">Short Description</label>
+                              <button 
+                                 onClick={handleSummarizeChat}
+                                 disabled={isSummarizing || chatHistory.length === 0}
+                                 className="px-2 py-1 rounded bg-surface-high/30 hover:bg-accent hover:text-white transition-colors text-[10px] text-accent font-bold uppercase flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                              >
+                                 {isSummarizing ? <RefreshCw className="w-3 h-3 animate-spin" /> : <BrainCircuit className="w-3 h-3" />}
+                                 Fill from Chat
+                              </button>
+                           </div>
+                           <textarea 
+                              value={formData.description}
+                              onChange={(e) => handleChange('description', e.target.value)}
+                              className="w-full h-32 p-4 rounded-xl bg-background border border-surface-high text-text-primary focus:border-accent outline-none resize-none"
+                              placeholder="What does your company do?"
+                           />
+                        </div>
+                     </div>
+                  )}
+
+                  {/* STEP 2: GOALS */}
+                  {step === 2 && (
+                     <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-text-secondary uppercase">Target Metrics (Success Criteria)</label>
+                           <div className="relative">
+                              <Target className="absolute left-3 top-3 w-4 h-4 text-text-secondary" />
+                              <input 
+                                 value={formData.targetMetrics}
+                                 onChange={(e) => handleChange('targetMetrics', e.target.value)}
+                                 className="w-full pl-10 p-3 rounded-xl bg-background border border-surface-high text-text-primary focus:border-accent outline-none"
+                                 placeholder="e.g. Reduce costs by 20%, Increase leads"
+                              />
+                           </div>
+                        </div>
+
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-text-secondary uppercase">Top Pain Point</label>
+                           <div className="relative group">
+                              <textarea 
+                                 value={formData.painPoints}
+                                 onChange={(e) => handleChange('painPoints', e.target.value)}
+                                 className={`w-full h-40 p-4 rounded-xl bg-background border ${errors.painPoints ? 'border-red-500' : 'border-surface-high'} text-text-primary focus:border-accent outline-none resize-none`}
+                                 placeholder="Describe the biggest bottleneck..."
+                              />
+                              <div className="absolute bottom-3 right-3 flex gap-2">
+                                 {undoStack && (
+                                    <button onClick={handleUndo} className="px-3 py-1.5 bg-surface border border-surface-high rounded-lg text-text-secondary hover:text-text-primary text-xs flex items-center gap-1 shadow-sm">
+                                       <Undo className="w-3 h-3" /> Undo
+                                    </button>
+                                 )}
+                                 <button 
+                                    onClick={handleRefinePainPoints}
+                                    disabled={isRefining || !formData.painPoints}
+                                    className="px-3 py-1.5 bg-accent text-white rounded-lg text-xs font-bold flex items-center gap-2 hover:opacity-90 transition-all shadow-md shadow-accent/20 disabled:opacity-0"
+                                 >
+                                    {isRefining ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                                    Polish with AI
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  )}
+
+                  {/* STEP 3: SCOPE */}
+                  {step === 3 && (
+                     <div className="space-y-8 animate-in fade-in slide-in-from-right duration-300">
+                        {/* Features */}
+                        <div className="space-y-3">
+                           <label className="text-xs font-bold text-text-secondary uppercase flex items-center gap-2">
+                              <Layers className="w-3 h-3" /> Services Required <span className="text-red-500">*</span>
+                           </label>
+                           <div className={`flex flex-wrap gap-2 ${errors.features ? 'p-2 border border-red-500/50 rounded-lg' : ''}`}>
+                              {FEATURES_LIST.map(f => (
+                                 <button
+                                    key={f}
+                                    onClick={() => toggleFeature(f)}
+                                    className={`px-3 py-2 rounded-lg text-xs font-bold border transition-all ${
+                                       formData.features.includes(f) 
+                                       ? 'bg-accent border-accent text-white' 
+                                       : 'bg-background border-surface-high text-text-secondary hover:border-accent/50'
+                                    }`}
+                                 >
+                                    {f}
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
+
+                        {/* Budget */}
+                        <div className="space-y-3">
+                           <label className="text-xs font-bold text-text-secondary uppercase flex items-center gap-2">
+                               <DollarSign className="w-3 h-3" /> Budget Preference
+                           </label>
+                           <div className="grid grid-cols-3 gap-3">
+                              {(['Fast', 'Standard', 'Flexible'] as const).map((band) => (
+                                 <button
+                                    key={band}
+                                    onClick={() => handleChange('budgetBand', band)}
+                                    className={`p-3 rounded-xl border text-center transition-all ${
+                                       formData.budgetBand === band
+                                       ? 'bg-accent/10 border-accent text-accent'
+                                       : 'bg-background border-surface-high text-text-secondary hover:border-text-secondary'
+                                    }`}
+                                 >
+                                    <div className="text-sm font-bold">{band}</div>
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
+
+                        {/* Timeline */}
+                        <div className="space-y-3">
+                           <label className="text-xs font-bold text-text-secondary uppercase flex items-center gap-2">
+                               <Clock className="w-3 h-3" /> Ideal Timeline <span className="text-red-500">*</span>
+                           </label>
+                           <div className={`grid grid-cols-2 md:grid-cols-4 gap-2 ${errors.timeline ? 'p-2 border border-red-500/50 rounded-lg' : ''}`}>
+                              {TIMELINE_OPTS.map(t => (
+                                 <button
+                                    key={t}
+                                    onClick={() => handleChange('timeline', t)}
+                                    className={`px-2 py-2 rounded-lg text-xs font-medium border transition-all ${
+                                       formData.timeline === t
+                                       ? 'bg-text-primary text-background border-text-primary'
+                                       : 'bg-background border-surface-high text-text-secondary hover:border-text-secondary'
+                                    }`}
+                                 >
+                                    {t}
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
+                     </div>
+                  )}
+
+                  {/* STEP 4: CONTACT */}
+                  {step === 4 && (
+                     <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-text-secondary uppercase">Email Address <span className="text-red-500">*</span></label>
+                           <div className="relative">
+                              <Mail className="absolute left-3 top-3 w-4 h-4 text-text-secondary" />
+                              <input 
+                                 type="email"
+                                 value={formData.email}
+                                 onChange={(e) => handleChange('email', e.target.value)}
+                                 className={`w-full pl-10 p-3 rounded-xl bg-background border ${errors.email ? 'border-red-500' : 'border-surface-high'} text-text-primary focus:border-accent outline-none`}
+                                 placeholder="you@company.com"
+                              />
+                           </div>
+                        </div>
+
+                        <div className="space-y-2">
+                           <label className="text-xs font-bold text-text-secondary uppercase">Phone Number</label>
+                           <div className="relative">
+                              <Phone className="absolute left-3 top-3 w-4 h-4 text-text-secondary" />
+                              <input 
+                                 type="tel"
+                                 value={formData.phone}
+                                 onChange={(e) => handleChange('phone', formatPhone(e.target.value))}
+                                 className="w-full pl-10 p-3 rounded-xl bg-background border border-surface-high text-text-primary focus:border-accent outline-none"
+                                 placeholder="(555) 000-0000"
+                              />
+                           </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 p-4 bg-surface-high/10 rounded-xl border border-surface-high">
+                           <input 
+                              type="checkbox" 
+                              id="saveChat"
+                              checked={formData.saveChatHistory}
+                              onChange={(e) => handleChange('saveChatHistory', e.target.checked)}
+                              className="mt-1 w-4 h-4 accent-accent"
+                           />
+                           <label htmlFor="saveChat" className="text-sm text-text-secondary">
+                              <strong>Persist Chat Context?</strong>
+                              <br/>
+                              Allows our team to read your conversation with the AI to better understand your needs.
+                           </label>
+                        </div>
+                     </div>
+                  )}
+
+               </div>
+            )}
+
+         </div>
+
+         {/* Footer */}
+         {!isSubmitted && (
+            <div className="bg-surface border-t border-surface-high p-4 flex justify-between items-center">
+               <button
+                  onClick={handleBack}
+                  disabled={step === 1}
+                  className="px-4 py-2 text-sm font-bold text-text-secondary hover:text-text-primary disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1 transition-colors btn-press"
+               >
+                  <ChevronLeft className="w-4 h-4" /> Back
+               </button>
+
+               <button
+                  onClick={step === 4 ? handleSubmit : handleNext}
+                  className={`
+                     px-6 py-3 rounded-xl font-bold flex items-center gap-2 shadow-lg transition-all duration-300 btn-press
+                     ${step === 4 
+                        ? 'bg-accent text-white hover:shadow-accent/30 w-40 justify-center' 
+                        : 'bg-text-primary text-background hover:bg-white/90'
+                     }
+                  `}
+               >
+                  {step === 4 ? (
+                     <>Submit <Send className="w-4 h-4" /></>
+                  ) : (
+                     <>Next <ChevronRight className="w-4 h-4" /></>
+                  )}
+               </button>
+            </div>
+         )}
 
       </div>
     </div>
