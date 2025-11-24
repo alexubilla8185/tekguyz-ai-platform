@@ -52,6 +52,8 @@
                         'zoom-in': 'zoomIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'breathe': 'breathe 3s ease-in-out infinite',
                         'pulse-slow': 'pulse 15s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'drawer-in-right': 'drawerInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'drawer-in-bottom': 'drawerInBottom 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     },
                     keyframes: {
                         fadeIn: {
@@ -69,6 +71,15 @@
                         slideInRight: {
                             '0%': { transform: 'translateX(100%)' },
                             '100%': { transform: 'translateX(0)' },
+                        },
+                        // Custom Drawer Animations
+                        drawerInRight: {
+                            '0%': { transform: 'translateX(100%)' },
+                            '100%': { transform: 'translateX(0)' },
+                        },
+                        drawerInBottom: {
+                            '0%': { transform: 'translateY(100%)' },
+                            '100%': { transform: 'translateY(0)' },
                         },
                         breathe: {
                             '0%, 100%': { boxShadow: '0 0 0 0 rgb(var(--color-accent) / 0)' },
@@ -242,7 +253,8 @@
     "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "vite": "https://aistudiocdn.com/vite@^7.2.4",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0"
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "react-markdown": "https://esm.sh/react-markdown@9.0.1?bundle"
   }
 }
 </script>

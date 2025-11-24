@@ -59,20 +59,25 @@ export class GeminiService {
     // Initialize the SDK with the key defined in vite.config.ts
     // The key is REVERSED during build to bypass Netlify security scanning.
     try {
-      if (process.env.API_KEY) {
-        // Simple string reversal is safer than atob() which throws DOM exceptions on whitespace
-        const decodedKey = process.env.API_KEY.split('').reverse().join('');
+      // process.env.API_KEY is injected by Vite as a string literal.
+      // If it's missing, it might be undefined or an empty string.
+      const injectedKey = process.env.API_KEY;
+
+      if (injectedKey && typeof injectedKey === 'string') {
+        // REVERSE it back to the original key
+        const decodedKey = injectedKey.split('').reverse().join('');
         
-        if (decodedKey && decodedKey.length > 5) {
+        if (decodedKey && decodedKey.length > 10) {
             this.ai = new GoogleGenAI({ apiKey: decodedKey });
         } else {
-             console.warn("Gemini API Key format invalid. Falling back to Mock Mode.");
+             console.warn("Gemini API Key is invalid or too short. Falling back to Mock Mode.");
         }
       } else {
-        console.warn("Gemini API Key missing. Falling back to Mock Mode.");
+        console.warn("Gemini API Key missing (Mock Mode Active).");
       }
     } catch (error) {
-      console.error("Failed to initialize Gemini SDK:", error);
+      // If this errors, we simply stay in Mock Mode (this.ai remains null)
+      console.error("Gemini SDK Initialization Error:", error);
     }
   }
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { X, Bot, Send, Sparkles, User, ArrowRight, Mic } from 'lucide-react';
 import { useGlobal, useChat } from '../../context/GlobalContext';
@@ -6,6 +5,7 @@ import { geminiService } from '../../utils/gemini';
 import { ChatMessage } from '../../types';
 import { useChatbotBridge } from '../../hooks/useChatbotBridge';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import MarkdownRenderer from '../ui/MarkdownRenderer';
 
 const ChatPanel: React.FC = () => {
   const { 
@@ -143,21 +143,21 @@ const ChatPanel: React.FC = () => {
       aria-modal="true"
       aria-labelledby="chat-panel-title"
     >
-      {/* Backdrop */}
+      {/* Backdrop - Fade In */}
       <div 
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity animate-in fade-in duration-300"
         onClick={() => setShowChatPanel(false)}
         aria-hidden="true"
       />
 
-      {/* Panel Container */}
+      {/* Panel Container - Slide In Drawer style */}
       <div 
         ref={containerRef}
-        className={`
-          absolute bg-surface/95 backdrop-blur-xl shadow-2xl flex flex-col
-          w-full h-full inset-0 animate-in slide-in-from-bottom duration-300
-          md:w-[450px] md:inset-auto md:top-0 md:bottom-0 md:right-0 md:border-l md:border-surface-high md:animate-in md:slide-in-from-right
-      `}>
+        className="
+          relative w-full h-full bg-surface/95 backdrop-blur-xl shadow-2xl flex flex-col border-l border-surface-high
+          md:w-[450px] 
+          animate-drawer-in-bottom md:animate-drawer-in-right
+      ">
         
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-surface-high bg-surface/50 shrink-0">
@@ -200,7 +200,7 @@ const ChatPanel: React.FC = () => {
                 key={msg.id} 
                 className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
             >
-                <div className={`flex gap-3 max-w-[90%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                <div className={`flex gap-3 max-w-[95%] ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                     {/* Avatar */}
                     <div className={`shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1 ${msg.role === 'user' ? 'bg-surface-high' : 'bg-accent/10 border border-accent/20'}`} aria-hidden="true">
                         {msg.role === 'user' ? <User className="w-4 h-4 text-text-secondary" /> : <Sparkles className="w-4 h-4 text-accent" />}
@@ -212,7 +212,11 @@ const ChatPanel: React.FC = () => {
                         ? 'bg-surface-high text-text-primary rounded-tr-none' 
                         : 'bg-surface border border-surface-high text-text-secondary rounded-tl-none shadow-[0_0_15px_rgba(var(--color-accent),0.05)]'
                     }`}>
-                        {msg.text}
+                        {msg.role === 'user' ? (
+                            msg.text
+                        ) : (
+                            <MarkdownRenderer>{msg.text}</MarkdownRenderer>
+                        )}
                     </div>
                 </div>
 
