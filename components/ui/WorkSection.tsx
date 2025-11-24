@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ArrowRight, ChevronDown, Building2, Stethoscope, ShoppingBag, Briefcase, Zap } from 'lucide-react';
+import { ArrowRight, ChevronDown, Building2, Stethoscope, ShoppingBag, Briefcase, Zap, Plus, Minus } from 'lucide-react';
 import { useGlobal } from '../../context/GlobalContext';
 import { CaseStudy, AdditionalProject } from '../../types';
 import { prefetchCaseStudy } from '../../utils/prefetch';
@@ -25,10 +25,10 @@ const caseStudies: CaseStudy[] = [
     3. Pushes clean JSON data directly into their Quickbooks instance.
     
     The result? The team now spends just 4 hours a week reviewing edge cases, freeing up 36 hours for strategic financial analysis.`,
-    imageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1000&fm=webp', // Added fm=webp
+    imageUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=1000&fm=webp',
     metrics: [
       { label: 'Time Saved', value: 90, valueDisplay: '90%', detail: 'From 40hrs/week to 4hrs/week.' },
-      { label: 'Accuracy', value: 99, valueDisplay: '99%', detail: 'Significant reduction in typo-related payment errors.' },
+      { label: 'Accuracy', value: 99, valueDisplay: '99%', detail: 'Significant reduction in payment errors.' },
       { label: 'ROI', value: 450, valueDisplay: '450%', detail: 'System paid for itself in less than 3 months.' }
     ],
     tags: ['Automation', 'Finance', 'OCR']
@@ -46,7 +46,7 @@ const caseStudies: CaseStudy[] = [
     3. Auto-generates contract drafts based on collected data.
     
     Agents now close deals 50% faster, and client satisfaction scores have hit all-time highs.`,
-    imageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000&fm=webp', // Added fm=webp
+    imageUrl: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000&fm=webp',
     metrics: [
       { label: 'Turnaround', value: 50, valueDisplay: '50%', detail: 'Closing time reduced from 14 days to 7 days.' },
       { label: 'Emails Sent', value: 75, valueDisplay: '-75%', detail: 'Reduced back-and-forth threads per client.' },
@@ -67,7 +67,7 @@ const caseStudies: CaseStudy[] = [
     3. Auto-generates purchase orders for approval.
 
     The system reduced dead stock by 25% in the first quarter alone.`,
-    imageUrl: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&q=80&w=1000&fm=webp', // Added fm=webp
+    imageUrl: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&q=80&w=1000&fm=webp',
     metrics: [
       { label: 'Dead Stock', value: 25, valueDisplay: '-25%', detail: 'Less capital tied up in slow-moving items.' },
       { label: 'Stockouts', value: 0, valueDisplay: '~0%', detail: 'Eliminated stockouts for top 50 SKUs.' },
@@ -147,7 +147,7 @@ const WorkSection: React.FC<WorkSectionProps> = ({ id }) => {
               <div 
                 onClick={() => setSelectedCaseStudy(study)}
                 onMouseEnter={prefetchCaseStudy}
-                className="group cursor-pointer rounded-2xl bg-surface border border-surface-high overflow-hidden card-hover"
+                className="group cursor-pointer rounded-2xl bg-surface border border-surface-high overflow-hidden card-hover h-full flex flex-col"
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => {
@@ -158,7 +158,7 @@ const WorkSection: React.FC<WorkSectionProps> = ({ id }) => {
                 }}
                 aria-label={`View Case Study: ${study.title}`}
               >
-                {/* Image Container with enforced aspect ratio for CLS prevention */}
+                {/* Image Container */}
                 <div className="aspect-[4/3] md:aspect-video overflow-hidden relative bg-surface-high/20">
                   <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors z-10 pointer-events-none" />
                   <OptimizedImage 
@@ -177,19 +177,19 @@ const WorkSection: React.FC<WorkSectionProps> = ({ id }) => {
                 </div>
 
                 {/* Content */}
-                <div className="p-6">
+                <div className="p-6 flex flex-col flex-1">
                   <div className="text-xs font-medium text-accent mb-2 uppercase tracking-wide">
                     {study.client}
                   </div>
                   <h3 className="text-xl font-bold text-text-primary mb-3 group-hover:text-accent transition-colors">
                     {study.title}
                   </h3>
-                  <p className="text-text-secondary text-sm leading-relaxed mb-6 line-clamp-3">
+                  <p className="text-text-secondary text-sm leading-relaxed mb-6 line-clamp-3 flex-1">
                     {study.description}
                   </p>
                   
                   {/* Footer / Highlight Metric */}
-                  <div className="pt-4 border-t border-surface-high flex items-center justify-between">
+                  <div className="pt-4 border-t border-surface-high flex items-center justify-between mt-auto">
                      <div className="flex flex-col">
                         <span className="text-2xl font-bold text-text-primary group-hover:text-accent transition-colors">
                           {study.metrics[0].valueDisplay}
@@ -208,16 +208,21 @@ const WorkSection: React.FC<WorkSectionProps> = ({ id }) => {
           ))}
         </div>
 
-        {/* Additional Projects List */}
+        {/* Additional Projects List (D2 Spec) */}
         <div className="max-w-4xl mx-auto">
            <RevealOnScroll>
-             <h3 className="type-title mb-8 text-center md:text-left">More Solutions</h3>
+             <h3 className="type-title mb-8 text-center md:text-left flex items-center gap-3">
+                More Solutions
+                <span className="text-xs font-normal text-text-secondary bg-surface-high/30 px-2 py-1 rounded-full">
+                    {additionalProjectsData.length} projects
+                </span>
+             </h3>
            </RevealOnScroll>
            <div className="space-y-4">
               {sortedProjects.map((project, index) => (
                  <RevealOnScroll key={project.id} delay={index * 50}>
                    <div 
-                     className="card-base bg-surface overflow-hidden hover:shadow-lg transition-all duration-300"
+                     className="card-base bg-surface overflow-hidden transition-all duration-300 group hover:border-accent/30"
                    >
                       <div 
                           onClick={() => toggleProject(project.id)}
@@ -226,29 +231,35 @@ const WorkSection: React.FC<WorkSectionProps> = ({ id }) => {
                           tabIndex={0}
                           aria-expanded={expandedProject === project.id}
                           aria-controls={`project-content-${project.id}`}
-                          className="p-5 flex items-center justify-between cursor-pointer hover:bg-surface-high/30 transition-colors focus:outline-none focus:bg-surface-high/30"
+                          className="p-5 flex items-center justify-between cursor-pointer hover:bg-surface-high/30 transition-colors focus:outline-none focus:bg-surface-high/30 select-none"
                       >
-                         <div className="flex items-center gap-4 md:gap-6 flex-1">
+                         <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 flex-1">
                             {/* Industry Chip */}
-                            <div className="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-surface-high/50 text-xs font-medium text-text-secondary w-32 shrink-0">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-high/50 text-xs font-medium text-text-secondary w-fit md:w-32 shrink-0 group-hover:bg-accent/10 group-hover:text-accent transition-colors">
                                 {getIndustryIcon(project.industry)}
                                 {project.industry}
                             </div>
                             
-                            {/* Title & Outcome */}
-                            <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
-                               <span className="font-bold text-text-primary">{project.title}</span>
-                               <span className="hidden md:inline text-surface-high mx-2">|</span>
-                               <span className="text-sm text-text-secondary">{project.outcome}</span>
+                            {/* Title & Metric */}
+                            <div className="flex flex-col gap-1 flex-1">
+                               <span className="font-bold text-text-primary group-hover:text-accent transition-colors text-lg">{project.title}</span>
+                               <span className="text-sm text-text-secondary md:hidden">{project.outcome}</span>
                             </div>
+                            
+                            {/* Desktop Metric */}
+                            <span className="hidden md:inline text-sm font-medium text-text-primary bg-surface-high/20 px-3 py-1 rounded-lg">
+                                {project.outcome}
+                            </span>
                          </div>
 
-                         <div className="flex items-center gap-4">
-                            <span className="text-xs text-text-secondary hidden sm:inline opacity-50">Tap to see more</span>
-                            <ChevronDown 
-                              className={`w-5 h-5 text-text-secondary transition-transform duration-300 ${expandedProject === project.id ? 'rotate-180' : ''}`} 
-                              aria-hidden="true"
-                            />
+                         {/* Hint & Arrow */}
+                         <div className="flex items-center gap-4 pl-4">
+                            <span className="text-[10px] uppercase tracking-wider font-bold text-text-secondary hidden sm:inline opacity-0 group-hover:opacity-100 transition-opacity">
+                                Tap to see more
+                            </span>
+                            <div className={`w-8 h-8 rounded-full bg-surface-high/20 flex items-center justify-center transition-transform duration-300 ${expandedProject === project.id ? 'rotate-180 bg-accent/20 text-accent' : ''}`}>
+                                {expandedProject === project.id ? <Minus className="w-4 h-4"/> : <Plus className="w-4 h-4" />}
+                            </div>
                          </div>
                       </div>
 
@@ -258,15 +269,20 @@ const WorkSection: React.FC<WorkSectionProps> = ({ id }) => {
                           className={`overflow-hidden transition-all duration-300 ease-in-out ${expandedProject === project.id ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}
                           aria-hidden={expandedProject !== project.id}
                       >
-                          <div className="p-5 pt-0 border-t border-surface-high/50 bg-surface-high/10">
-                              <div className="flex flex-col md:flex-row md:items-center gap-4 mt-4">
-                                  <div className="flex-1">
-                                      <span className="text-sm font-bold text-accent">Key Highlight: </span>
-                                      <span className="text-sm text-text-secondary">{project.highlight}</span>
+                          <div className="px-5 pb-5 pt-0">
+                              <div className="p-4 rounded-xl bg-surface-high/10 border border-surface-high flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                  <div className="flex items-start gap-3">
+                                      <div className="p-1.5 rounded bg-accent/20">
+                                         <Zap className="w-4 h-4 text-accent" />
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-1">Highlight</span>
+                                        <span className="text-sm text-text-primary">{project.highlight}</span>
+                                      </div>
                                   </div>
                                   <div className="flex gap-2">
                                       {project.tags.map(tag => (
-                                          <span key={tag} className="text-xs px-2 py-1 rounded bg-background border border-surface-high text-text-secondary">
+                                          <span key={tag} className="text-[10px] px-2 py-1 rounded bg-background border border-surface-high text-text-secondary uppercase tracking-wider font-medium">
                                               #{tag}
                                           </span>
                                       ))}

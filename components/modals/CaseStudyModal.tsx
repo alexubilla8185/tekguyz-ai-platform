@@ -1,9 +1,9 @@
-
 import React, { useEffect, useState } from 'react';
-import { X, TrendingUp, Sparkles, Building2, ExternalLink, Info, MousePointerClick } from 'lucide-react';
+import { X, TrendingUp, ExternalLink, Info, MousePointerClick, Building2 } from 'lucide-react';
 import { useGlobal } from '../../context/GlobalContext';
 import { prefetchProjectForm } from '../../utils/prefetch';
 import { useFocusTrap } from '../../hooks/useFocusTrap';
+import OptimizedImage from '../ui/OptimizedImage';
 
 // CountUp Component for animated numbers
 const CountUp: React.FC<{ end: number; duration?: number; suffix?: string }> = ({ end, duration = 2000, suffix = '' }) => {
@@ -11,17 +11,24 @@ const CountUp: React.FC<{ end: number; duration?: number; suffix?: string }> = (
 
   useEffect(() => {
     let startTime: number | null = null;
+    let animationFrameId: number;
+
     const animate = (currentTime: number) => {
       if (!startTime) startTime = currentTime;
       const progress = Math.min((currentTime - startTime) / duration, 1);
       
-      setCount(Math.floor(progress * end));
+      // Easing function: easeOutQuart
+      const ease = 1 - Math.pow(1 - progress, 4);
+      
+      setCount(Math.floor(ease * end));
 
       if (progress < 1) {
-        requestAnimationFrame(animate);
+        animationFrameId = requestAnimationFrame(animate);
       }
     };
-    requestAnimationFrame(animate);
+    
+    animationFrameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animationFrameId);
   }, [end, duration]);
 
   return <span>{count}{suffix}</span>;
@@ -37,7 +44,8 @@ const CaseStudyModal: React.FC = () => {
 
   useEffect(() => {
     if (selectedCaseStudy) {
-      const timer = setTimeout(() => setIsLoaded(true), 10);
+      // Small delay to allow mounting before transition
+      const timer = setTimeout(() => setIsLoaded(true), 50);
       setFlippedMetrics([]);
       return () => clearTimeout(timer);
     } else {
@@ -74,7 +82,7 @@ const CaseStudyModal: React.FC = () => {
     >
       {/* Backdrop */}
       <div 
-        className="absolute inset-0 bg-black/70 backdrop-blur-md transition-opacity duration-300"
+        className="absolute inset-0 bg-black/80 backdrop-blur-md transition-opacity duration-300"
         onClick={() => setSelectedCaseStudy(null)}
         aria-hidden="true"
       />
@@ -82,16 +90,16 @@ const CaseStudyModal: React.FC = () => {
       {/* Modal Container */}
       <div 
         ref={containerRef}
-        className={`relative w-full h-[95vh] sm:h-auto sm:max-w-4xl sm:max-h-[90vh] bg-surface border-t sm:border border-surface-high rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-300 transform ${isLoaded ? 'translate-y-0 sm:scale-100 opacity-100' : 'translate-y-full sm:scale-95 opacity-0'}`}
+        className={`relative w-full h-[95vh] sm:h-auto sm:max-w-4xl sm:max-h-[90vh] bg-surface border-t sm:border border-surface-high rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-all duration-500 transform ${isLoaded ? 'translate-y-0 sm:scale-100 opacity-100' : 'translate-y-full sm:scale-95 opacity-0'}`}
       >
         {/* Compact Header */}
-        <div className="relative shrink-0 border-b border-surface-high bg-surface/95 backdrop-blur-md px-6 py-4 flex items-center justify-between z-10">
+        <div className="shrink-0 border-b border-surface-high bg-surface/95 backdrop-blur-md px-6 py-4 flex items-center justify-between z-20">
             <div className="flex flex-col gap-0.5">
                  <div className="flex items-center gap-2 text-[10px] font-bold text-accent uppercase tracking-wider">
                      <Building2 className="w-3 h-3" />
                      {selectedCaseStudy.client}
                  </div>
-                 <h2 id="casestudy-title" className="text-xl font-bold text-text-primary tracking-tight line-clamp-1">
+                 <h2 id="casestudy-title" className="text-lg md:text-xl font-bold text-text-primary tracking-tight line-clamp-1">
                     {selectedCaseStudy.title}
                  </h2>
             </div>
@@ -106,16 +114,27 @@ const CaseStudyModal: React.FC = () => {
         </div>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-surface">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
-                
-                {/* Left Column: Narrative */}
-                <div className="md:col-span-7 space-y-6">
-                    <div>
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2 mb-4">
+        <div className="flex-1 overflow-y-auto bg-surface">
+            
+            {/* Hero Image Area */}
+            <div className="w-full h-48 sm:h-64 relative bg-surface-high/20">
+                 <OptimizedImage 
+                    src={selectedCaseStudy.imageUrl} 
+                    alt={selectedCaseStudy.title}
+                    className="w-full h-full object-cover"
+                 />
+                 <div className="absolute inset-0 bg-gradient-to-t from-surface via-transparent to-transparent pointer-events-none" />
+            </div>
+
+            {/* Main Content Area */}
+            <div className="p-6 sm:p-8 -mt-16 relative z-10">
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12">
+                    
+                    {/* Left Column: Narrative */}
+                    <div className="md:col-span-7 space-y-6">
+                        <div className="flex flex-wrap gap-2">
                             {selectedCaseStudy.tags.map(tag => (
-                                <span key={tag} className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-surface-high/20 border border-surface-high text-text-secondary uppercase tracking-wide">
+                                <span key={tag} className="text-[10px] font-bold px-3 py-1 rounded-full bg-surface border border-surface-high text-text-secondary uppercase tracking-wide shadow-sm">
                                     {tag}
                                 </span>
                             ))}
@@ -125,68 +144,66 @@ const CaseStudyModal: React.FC = () => {
                             {selectedCaseStudy.fullDescription}
                         </div>
                     </div>
-                </div>
 
-                {/* Right Column: Metrics (Compact Grid) */}
-                <div className="md:col-span-5 flex flex-col gap-4">
-                    <div className="flex items-center justify-between text-text-primary font-bold text-xs uppercase tracking-wider opacity-80 border-b border-surface-high pb-2">
-                        <span className="flex items-center gap-2"><TrendingUp className="w-4 h-4 text-accent" /> Impact Metrics</span>
-                        <span className="flex items-center gap-1 text-[10px] text-text-secondary lowercase font-normal"><MousePointerClick className="w-3 h-3"/> tap cards</span>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 gap-3">
-                        {selectedCaseStudy.metrics.map((metric, index) => (
-                            <div 
-                                key={index} 
-                                className="group h-24 perspective-1000 cursor-pointer focus:outline-none select-none"
-                                onClick={() => toggleMetricFlip(index)}
-                                onKeyDown={(e) => handleMetricKeyDown(e, index)}
-                                tabIndex={0}
-                                role="button"
-                                aria-pressed={flippedMetrics.includes(index)}
-                                aria-label={`${metric.label}: ${metric.valueDisplay}. Click to see details.`}
-                            >
-                                <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${flippedMetrics.includes(index) ? 'rotate-y-180' : 'group-hover:rotate-y-180'}`}>
-                                    
-                                    {/* Front Face */}
-                                    <div className="absolute inset-0 backface-hidden bg-surface-high/10 border border-surface-high rounded-xl px-5 flex items-center justify-between hover:bg-surface-high/20 hover:border-accent/30 transition-all shadow-sm">
-                                        <div className="flex flex-col justify-center">
-                                            <span className="text-3xl font-bold text-text-primary group-hover:text-accent transition-colors">
-                                                {typeof metric.value === 'number' ? (
-                                                    <CountUp end={metric.value} suffix={metric.valueDisplay.replace(/[0-9]/g, '')} />
-                                                ) : (
-                                                    metric.valueDisplay
-                                                )}
-                                            </span>
-                                            <span className="text-[10px] font-bold text-text-secondary uppercase tracking-wider mt-1">
-                                                {metric.label}
-                                            </span>
+                    {/* Right Column: Metrics (Interactive Cards) */}
+                    <div className="md:col-span-5 flex flex-col gap-4">
+                        <div className="flex items-center justify-between border-b border-surface-high pb-2">
+                            <span className="flex items-center gap-2 text-xs font-bold text-text-primary uppercase tracking-wider">
+                                <TrendingUp className="w-4 h-4 text-accent" /> Impact Metrics
+                            </span>
+                            <span className="flex items-center gap-1 text-[10px] text-text-secondary opacity-60">
+                                <MousePointerClick className="w-3 h-3"/> Tap or Hover
+                            </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 gap-3">
+                            {selectedCaseStudy.metrics.map((metric, index) => (
+                                <div 
+                                    key={index} 
+                                    className="group h-24 perspective-1000 cursor-pointer focus:outline-none select-none"
+                                    onClick={() => toggleMetricFlip(index)}
+                                    onMouseEnter={() => !flippedMetrics.includes(index) && toggleMetricFlip(index)}
+                                    onMouseLeave={() => flippedMetrics.includes(index) && toggleMetricFlip(index)}
+                                    onKeyDown={(e) => handleMetricKeyDown(e, index)}
+                                    tabIndex={0}
+                                    role="button"
+                                    aria-pressed={flippedMetrics.includes(index)}
+                                    aria-label={`${metric.label}: ${metric.valueDisplay}. Flip for details.`}
+                                >
+                                    <div className={`relative w-full h-full transition-transform duration-500 transform-style-3d ${flippedMetrics.includes(index) ? 'rotate-y-180' : ''}`}>
+                                        
+                                        {/* Front Face */}
+                                        <div className="absolute inset-0 backface-hidden bg-surface-high/10 border border-surface-high rounded-xl p-4 flex items-center justify-between hover:bg-surface-high/30 hover:border-accent/30 transition-all shadow-sm">
+                                            <div className="flex flex-col justify-center h-full">
+                                                <div className="text-3xl font-bold text-text-primary group-hover:text-accent transition-colors">
+                                                    {typeof metric.value === 'number' ? (
+                                                        <CountUp end={metric.value} suffix={metric.valueDisplay.replace(/[0-9]/g, '')} />
+                                                    ) : (
+                                                        metric.valueDisplay
+                                                    )}
+                                                </div>
+                                                <div className="text-xs font-bold text-text-secondary uppercase tracking-wider mt-1">
+                                                    {metric.label}
+                                                </div>
+                                            </div>
+                                            <div className="w-8 h-8 rounded-full bg-surface-high/30 flex items-center justify-center text-text-secondary/50 group-hover:bg-accent group-hover:text-white transition-all">
+                                                <Info className="w-4 h-4" />
+                                            </div>
                                         </div>
-                                        <div className="w-8 h-8 rounded-full bg-surface-high/30 flex items-center justify-center text-text-secondary group-hover:bg-accent group-hover:text-white transition-all">
-                                            <Info className="w-4 h-4" />
-                                        </div>
-                                    </div>
 
-                                    {/* Back Face */}
-                                    <div className="absolute inset-0 backface-hidden rotate-y-180 bg-accent text-white rounded-xl px-5 flex items-center justify-center text-center shadow-inner">
-                                        <p className="text-xs font-medium leading-relaxed">
-                                            {metric.detail}
-                                        </p>
+                                        {/* Back Face */}
+                                        <div className="absolute inset-0 backface-hidden rotate-y-180 bg-accent text-white rounded-xl p-4 flex items-center justify-center text-center shadow-inner border border-accent">
+                                            <p className="text-xs sm:text-sm font-medium leading-snug">
+                                                {metric.detail}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))}
+                        </div>
                     </div>
-                    
-                    {/* Compact Result Callout */}
-                    <div className="mt-2 p-3 rounded-lg bg-green-500/5 border border-green-500/10 flex gap-3 items-start">
-                        <Sparkles className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
-                        <p className="text-xs text-text-secondary leading-relaxed">
-                            <strong className="text-green-400">Outcome:</strong> This project paid for itself in under 3 months through direct efficiency gains.
-                        </p>
-                    </div>
-                </div>
 
+                </div>
             </div>
         </div>
 
