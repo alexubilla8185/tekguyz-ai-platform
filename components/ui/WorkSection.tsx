@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { ArrowRight, ChevronDown, Building2, Stethoscope, ShoppingBag, Briefcase, Zap, Plus, Minus } from 'lucide-react';
 import { useGlobal } from '../../context/GlobalContext';
@@ -211,12 +212,14 @@ const WorkSection: React.FC<WorkSectionProps> = ({ id }) => {
         {/* Additional Projects List (D2 Spec) */}
         <div className="max-w-4xl mx-auto">
            <RevealOnScroll>
-             <h3 className="type-title mb-8 text-center md:text-left flex items-center gap-3">
-                More Solutions
-                <span className="text-xs font-normal text-text-secondary bg-surface-high/30 px-2 py-1 rounded-full">
-                    {additionalProjectsData.length} projects
-                </span>
-             </h3>
+             <div className="flex items-center justify-between mb-8">
+                <h3 className="type-title flex items-center gap-3">
+                    More Solutions
+                    <span className="text-xs font-normal text-text-secondary bg-surface-high/30 px-2 py-1 rounded-full">
+                        {additionalProjectsData.length}
+                    </span>
+                </h3>
+             </div>
            </RevealOnScroll>
            <div className="space-y-4">
               {sortedProjects.map((project, index) => (
@@ -231,33 +234,34 @@ const WorkSection: React.FC<WorkSectionProps> = ({ id }) => {
                           tabIndex={0}
                           aria-expanded={expandedProject === project.id}
                           aria-controls={`project-content-${project.id}`}
-                          className="p-5 flex items-center justify-between cursor-pointer hover:bg-surface-high/30 transition-colors focus:outline-none focus:bg-surface-high/30 select-none"
+                          className="p-4 md:p-5 flex items-center justify-between cursor-pointer hover:bg-surface-high/30 transition-colors focus:outline-none focus:bg-surface-high/30 select-none gap-4"
                       >
-                         <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 flex-1">
+                         <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6 flex-1 min-w-0">
                             {/* Industry Chip */}
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-high/50 text-xs font-medium text-text-secondary w-fit md:w-32 shrink-0 group-hover:bg-accent/10 group-hover:text-accent transition-colors">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-high/50 text-xs font-medium text-text-secondary w-fit md:w-36 shrink-0 group-hover:bg-accent/10 group-hover:text-accent transition-colors">
                                 {getIndustryIcon(project.industry)}
-                                {project.industry}
+                                <span className="truncate">{project.industry}</span>
                             </div>
                             
-                            {/* Title & Metric */}
-                            <div className="flex flex-col gap-1 flex-1">
-                               <span className="font-bold text-text-primary group-hover:text-accent transition-colors text-lg">{project.title}</span>
-                               <span className="text-sm text-text-secondary md:hidden">{project.outcome}</span>
+                            {/* Title & Mobile Metric */}
+                            <div className="flex flex-col gap-1 flex-1 min-w-0">
+                               <span className="font-bold text-text-primary group-hover:text-accent transition-colors text-base md:text-lg truncate block">
+                                    {project.title}
+                               </span>
+                               <span className="text-sm text-text-secondary md:hidden line-clamp-1">
+                                    {project.outcome}
+                               </span>
                             </div>
                             
-                            {/* Desktop Metric */}
-                            <span className="hidden md:inline text-sm font-medium text-text-primary bg-surface-high/20 px-3 py-1 rounded-lg">
+                            {/* Desktop Metric - Right Aligned & Fixed */}
+                            <span className="hidden md:inline-flex items-center text-sm font-medium text-text-primary bg-surface-high/20 px-3 py-1 rounded-lg shrink-0 whitespace-nowrap border border-transparent group-hover:border-surface-high transition-colors">
                                 {project.outcome}
                             </span>
                          </div>
 
-                         {/* Hint & Arrow */}
-                         <div className="flex items-center gap-4 pl-4">
-                            <span className="text-[10px] uppercase tracking-wider font-bold text-text-secondary hidden sm:inline opacity-0 group-hover:opacity-100 transition-opacity">
-                                Tap to see more
-                            </span>
-                            <div className={`w-8 h-8 rounded-full bg-surface-high/20 flex items-center justify-center transition-transform duration-300 ${expandedProject === project.id ? 'rotate-180 bg-accent/20 text-accent' : ''}`}>
+                         {/* Toggle Icon */}
+                         <div className="shrink-0 pl-2">
+                            <div className={`w-8 h-8 rounded-full bg-surface-high/20 flex items-center justify-center transition-transform duration-300 ${expandedProject === project.id ? 'rotate-180 bg-accent/20 text-accent' : 'group-hover:bg-surface-high'}`}>
                                 {expandedProject === project.id ? <Minus className="w-4 h-4"/> : <Plus className="w-4 h-4" />}
                             </div>
                          </div>
