@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Moon, Sun, Palette, Check } from 'lucide-react';
 import { useGlobal } from '../../context/GlobalContext';
@@ -87,11 +86,6 @@ const ThemeSelector: React.FC = () => {
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Helper Text */}
-          <div className="mt-4 pt-3 border-t border-surface-high text-[10px] text-text-secondary text-center">
-            Nexus AI adapts intelligently to your preference.
           </div>
         </div>
       )}

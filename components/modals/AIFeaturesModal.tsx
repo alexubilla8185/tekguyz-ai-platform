@@ -111,7 +111,7 @@ const AIFeaturesModal: React.FC = () => {
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6"
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="ai-features-title"
@@ -123,23 +123,23 @@ const AIFeaturesModal: React.FC = () => {
         aria-hidden="true"
       />
 
-      {/* Modal Content */}
+      {/* Modal Content - Expanded Width for Desktop */}
       <div 
         ref={containerRef}
-        className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[85vh] sm:max-w-5xl bg-surface border border-surface-high rounded-t-2xl sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-2 duration-300 sm:zoom-in-95"
+        className="relative w-full h-[100dvh] sm:h-[90vh] sm:max-w-7xl bg-surface border border-surface-high rounded-none sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-bottom-4 duration-300 sm:zoom-in-95"
       >
         
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-surface-high bg-surface/50 shrink-0">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-surface-high bg-surface/50 shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-accent/10 rounded-lg">
-                <Sparkles className="h-6 w-6 text-accent" aria-hidden="true" />
+                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-accent" aria-hidden="true" />
             </div>
             <div>
-                <h2 id="ai-features-title" className="text-xl font-bold text-text-primary">
+                <h2 id="ai-features-title" className="text-lg sm:text-xl font-bold text-text-primary">
                 AI Playground
                 </h2>
-                <p className="text-xs text-text-secondary">Explore TEKGUYZ capabilities in real-time</p>
+                <p className="text-[10px] sm:text-xs text-text-secondary">Explore TEKGUYZ capabilities in real-time</p>
             </div>
           </div>
           <button
@@ -154,54 +154,54 @@ const AIFeaturesModal: React.FC = () => {
         {/* Main Body with Sidebar Layout */}
         <div className="flex flex-col md:flex-row flex-1 overflow-hidden">
             
-            {/* Sidebar Navigation */}
-            <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-surface-high bg-surface-high/10 flex md:flex-col p-2 md:py-4 gap-2 shrink-0 overflow-x-auto" role="tablist">
+            {/* Sidebar Navigation - Horizontal Scroll on Mobile */}
+            <div className="w-full md:w-64 border-b md:border-b-0 md:border-r border-surface-high bg-surface-high/5 flex md:flex-col p-2 md:py-4 gap-2 shrink-0 overflow-x-auto snap-x no-scrollbar" role="tablist">
                 <button 
                     role="tab"
                     aria-selected={activeTab === 'audit'}
                     onClick={() => setActiveTab('audit')}
-                    className={`btn-press flex items-center gap-3 px-4 py-3 mx-1 md:mx-2 rounded-lg transition-all whitespace-nowrap ${activeTab === 'audit' ? 'bg-surface shadow-sm text-accent font-medium' : 'text-text-secondary hover:bg-surface-high/30 hover:text-text-primary'}`}
+                    className={`snap-start shrink-0 btn-press flex items-center gap-3 px-4 py-3 mx-1 md:mx-2 rounded-lg transition-all whitespace-nowrap border ${activeTab === 'audit' ? 'bg-surface border-surface-high shadow-sm text-accent font-medium' : 'border-transparent text-text-secondary hover:bg-surface-high/30 hover:text-text-primary'}`}
                 >
                     <Zap className="w-5 h-5 shrink-0" />
-                    <span className="md:inline">Quick Audit</span>
+                    <span>Quick Audit</span>
                 </button>
                 <button 
                     role="tab"
                     aria-selected={activeTab === 'refine'}
                     onClick={() => setActiveTab('refine')}
-                    className={`btn-press flex items-center gap-3 px-4 py-3 mx-1 md:mx-2 rounded-lg transition-all whitespace-nowrap ${activeTab === 'refine' ? 'bg-surface shadow-sm text-accent font-medium' : 'text-text-secondary hover:bg-surface-high/30 hover:text-text-primary'}`}
+                    className={`snap-start shrink-0 btn-press flex items-center gap-3 px-4 py-3 mx-1 md:mx-2 rounded-lg transition-all whitespace-nowrap border ${activeTab === 'refine' ? 'bg-surface border-surface-high shadow-sm text-accent font-medium' : 'border-transparent text-text-secondary hover:bg-surface-high/30 hover:text-text-primary'}`}
                 >
                     <FileText className="w-5 h-5 shrink-0" />
-                    <span className="md:inline">Refine Text</span>
+                    <span>Refine Text</span>
                 </button>
                 <button 
                     role="tab"
                     aria-selected={activeTab === 'ideas'}
                     onClick={() => setActiveTab('ideas')}
-                    className={`btn-press flex items-center gap-3 px-4 py-3 mx-1 md:mx-2 rounded-lg transition-all whitespace-nowrap ${activeTab === 'ideas' ? 'bg-surface shadow-sm text-accent font-medium' : 'text-text-secondary hover:bg-surface-high/30 hover:text-text-primary'}`}
+                    className={`snap-start shrink-0 btn-press flex items-center gap-3 px-4 py-3 mx-1 md:mx-2 rounded-lg transition-all whitespace-nowrap border ${activeTab === 'ideas' ? 'bg-surface border-surface-high shadow-sm text-accent font-medium' : 'border-transparent text-text-secondary hover:bg-surface-high/30 hover:text-text-primary'}`}
                 >
                     <Lightbulb className="w-5 h-5 shrink-0" />
-                    <span className="md:inline">Idea Generator</span>
+                    <span>Idea Generator</span>
                 </button>
             </div>
 
             {/* Content Pane */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 bg-surface/30" role="tabpanel">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 bg-surface/30" role="tabpanel">
                 
                 {/* Error Banner */}
                 {error && (
-                    <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4" role="alert">
-                        <AlertCircle className="w-5 h-5" />
+                    <div className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 sticky top-0 z-10 backdrop-blur-md" role="alert">
+                        <AlertCircle className="w-5 h-5 shrink-0" />
                         <span className="text-sm font-medium">{error}</span>
                     </div>
                 )}
 
                 {/* --- PANE 1: QUICK AUDIT --- */}
                 {activeTab === 'audit' && (
-                    <div className="max-w-2xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-2 pb-12">
-                        <div className="text-center md:text-left">
-                            <h3 className="text-2xl font-bold text-text-primary mb-2">Operational Quick Audit</h3>
-                            <p className="text-text-secondary">Describe a bottleneck in your business. We'll identify the tech solution.</p>
+                    <div className="max-w-3xl mx-auto space-y-6 animate-in fade-in slide-in-from-bottom-2 pb-20">
+                        <div className="text-left">
+                            <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-2">Operational Quick Audit</h3>
+                            <p className="text-text-secondary text-sm sm:text-base">Describe a bottleneck in your business. We'll identify the tech solution.</p>
                         </div>
 
                         <div className="space-y-4">
@@ -209,14 +209,14 @@ const AIFeaturesModal: React.FC = () => {
                                 value={auditInput}
                                 onChange={(e) => setAuditInput(e.target.value)}
                                 placeholder="e.g., 'My sales team spends 3 hours a day manually entering leads from emails into our CRM.'"
-                                className="w-full h-32 p-4 rounded-xl bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none placeholder:text-text-secondary/50"
+                                className="w-full h-40 p-4 rounded-xl bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none placeholder:text-text-secondary/50"
                                 aria-label="Describe your bottleneck"
                             />
                             <div className="flex justify-end">
                                 <button
                                     onClick={handleAudit}
                                     disabled={isLoading || !auditInput.trim()}
-                                    className="px-6 py-2 bg-accent text-white font-bold rounded-lg hover:opacity-90 transition-all disabled:opacity-50 flex items-center gap-2 btn-press"
+                                    className="w-full sm:w-auto px-8 py-3 bg-accent text-white font-bold rounded-xl hover:opacity-90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 btn-press"
                                 >
                                     {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                                     Run Audit
@@ -230,7 +230,7 @@ const AIFeaturesModal: React.FC = () => {
                                 <h4 className="font-bold text-accent mb-4 flex items-center gap-2">
                                     <Sparkles className="w-4 h-4" /> Assessment
                                 </h4>
-                                <p className="text-text-primary text-lg mb-6 leading-relaxed">
+                                <p className="text-text-primary text-base sm:text-lg mb-6 leading-relaxed">
                                     {auditResult.assessment}
                                 </p>
                                 
@@ -258,26 +258,26 @@ const AIFeaturesModal: React.FC = () => {
 
                 {/* --- PANE 2: REFINE TEXT --- */}
                 {activeTab === 'refine' && (
-                    <div className="max-w-4xl mx-auto h-full flex flex-col animate-in fade-in slide-in-from-bottom-2 pb-12">
-                        <div className="mb-6">
-                            <h3 className="text-2xl font-bold text-text-primary mb-2">Smart Refiner</h3>
-                            <p className="text-text-secondary">Turn rough notes into polished professional copy.</p>
+                    <div className="h-full flex flex-col animate-in fade-in slide-in-from-bottom-2 pb-2">
+                        <div className="mb-4 sm:mb-6 shrink-0">
+                            <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-2">Smart Refiner</h3>
+                            <p className="text-text-secondary text-sm sm:text-base">Turn rough notes into polished professional copy.</p>
                         </div>
 
-                        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 min-h-[400px]">
+                        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 min-h-0">
                             {/* Input Column */}
-                            <div className="flex flex-col gap-4">
-                                <label className="text-sm font-bold text-text-secondary uppercase tracking-wider">Original</label>
+                            <div className="flex flex-col gap-2 sm:gap-4 h-full">
+                                <label className="text-xs sm:text-sm font-bold text-text-secondary uppercase tracking-wider">Original</label>
                                 <textarea
                                     value={refineInput}
                                     onChange={(e) => setRefineInput(e.target.value)}
                                     placeholder="Paste rough text here..."
-                                    className="flex-1 min-h-[200px] p-4 rounded-xl bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none"
+                                    className="flex-1 p-4 rounded-xl bg-background border border-surface-high text-text-primary focus:border-accent focus:ring-1 focus:ring-accent transition-all resize-none text-sm sm:text-base"
                                 />
                                 <button
                                     onClick={handleRefine}
                                     disabled={isLoading || !refineInput.trim()}
-                                    className="w-full py-3 bg-surface-high text-text-primary font-bold rounded-lg hover:bg-accent hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 btn-press"
+                                    className="w-full py-3 bg-surface-high text-text-primary font-bold rounded-lg hover:bg-accent hover:text-white transition-all disabled:opacity-50 flex items-center justify-center gap-2 btn-press shrink-0"
                                 >
                                      {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                                     Refine Text
@@ -285,14 +285,14 @@ const AIFeaturesModal: React.FC = () => {
                             </div>
 
                             {/* Output Column */}
-                            <div className="flex flex-col gap-4">
-                                <label className="text-sm font-bold text-accent uppercase tracking-wider flex items-center gap-2">
+                            <div className="flex flex-col gap-2 sm:gap-4 h-full mt-4 lg:mt-0">
+                                <label className="text-xs sm:text-sm font-bold text-accent uppercase tracking-wider flex items-center gap-2">
                                     Polished <span className="text-[10px] bg-accent/20 text-accent px-2 py-0.5 rounded-full">AI</span>
                                 </label>
-                                <div className="flex-1 min-h-[200px] p-4 rounded-xl bg-surface border border-surface-high relative overflow-hidden group">
+                                <div className="flex-1 p-4 rounded-xl bg-surface border border-surface-high relative overflow-y-auto group min-h-[200px] lg:min-h-0">
                                     {refineResult ? (
                                         <div className="animate-in fade-in zoom-in duration-500">
-                                            <p className="text-text-primary leading-relaxed whitespace-pre-wrap">{refineResult}</p>
+                                            <p className="text-text-primary leading-relaxed whitespace-pre-wrap text-sm sm:text-base">{refineResult}</p>
                                         </div>
                                     ) : (
                                         <div className="absolute inset-0 flex items-center justify-center text-text-secondary/20 select-none">
@@ -307,14 +307,14 @@ const AIFeaturesModal: React.FC = () => {
 
                 {/* --- PANE 3: IDEA GENERATOR --- */}
                 {activeTab === 'ideas' && (
-                    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 pb-12">
+                    <div className="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-2 pb-20">
                         <div className="text-center">
-                            <h3 className="text-2xl font-bold text-text-primary mb-2">Idea Spark</h3>
-                            <p className="text-text-secondary">Enter your industry or a loose concept. We'll generate project candidates.</p>
+                            <h3 className="text-xl sm:text-2xl font-bold text-text-primary mb-2">Idea Spark</h3>
+                            <p className="text-text-secondary text-sm sm:text-base">Enter your industry or a loose concept. We'll generate project candidates.</p>
                         </div>
 
                         {/* Search Bar */}
-                        <div className="flex flex-col sm:flex-row max-w-lg mx-auto gap-2">
+                        <div className="flex flex-col sm:flex-row max-w-lg mx-auto gap-3">
                             <input
                                 value={ideaInput}
                                 onChange={(e) => setIdeaInput(e.target.value)}
@@ -326,7 +326,7 @@ const AIFeaturesModal: React.FC = () => {
                             <button
                                 onClick={handleGenerateIdeas}
                                 disabled={isLoading || !ideaInput.trim()}
-                                className="px-6 py-3 bg-accent text-white rounded-full hover:shadow-lg hover:shadow-accent/20 transition-all disabled:opacity-50 flex justify-center btn-press"
+                                className="px-6 py-3 bg-accent text-white rounded-full hover:shadow-lg hover:shadow-accent/20 transition-all disabled:opacity-50 flex justify-center items-center btn-press"
                                 aria-label="Generate Ideas"
                             >
                                 {isLoading ? <RefreshCw className="w-5 h-5 animate-spin" /> : <ArrowRight className="w-5 h-5" />}
@@ -334,9 +334,9 @@ const AIFeaturesModal: React.FC = () => {
                         </div>
 
                         {/* Results Grid - Flip Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-4 sm:pt-8">
                             {ideaResults.length === 0 && !isLoading && (
-                                <div className="col-span-1 md:col-span-3 text-center text-text-secondary/40 py-12 border-2 border-dashed border-surface-high rounded-xl">
+                                <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-center text-text-secondary/40 py-12 border-2 border-dashed border-surface-high rounded-xl">
                                     <Lightbulb className="w-12 h-12 mx-auto mb-4 opacity-50" />
                                     <p>Ideas will appear here</p>
                                 </div>
@@ -403,6 +403,15 @@ const AIFeaturesModal: React.FC = () => {
             .transform-style-3d { transform-style: preserve-3d; }
             .backface-hidden { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
             .rotate-y-180 { transform: rotateY(180deg); }
+            /* Hide Scrollbar for Chrome, Safari and Opera */
+            .no-scrollbar::-webkit-scrollbar {
+              display: none;
+            }
+            /* Hide Scrollbar for IE, Edge and Firefox */
+            .no-scrollbar {
+              -ms-overflow-style: none;  /* IE and Edge */
+              scrollbar-width: none;  /* Firefox */
+            }
         `}</style>
 
       </div>
